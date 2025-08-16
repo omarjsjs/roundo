@@ -1,4 +1,4 @@
-/* Roundo v14 – ES5-ish, fixes routing & next question advance, mounts #app if missing */
+/* Roundo v16 – routing hardening, lobby start fix, store logic, question flow fix */
 (function () {
   'use strict';
 
@@ -34,6 +34,14 @@
   function t(k){ return (STR[lang] && STR[lang][k]) || k; }
   function safeText(id, txt){ var el = $("#"+id); if (el) el.textContent = txt; }
 
+  function shuffle(a){
+    for (var i=a.length-1; i>0; i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var tmp=a[i]; a[i]=a[j]; a[j]=tmp;
+    }
+    return a;
+  }
+
   // ===== state =====
   var urlLang = (new URLSearchParams(location.search)).get("lang");
   var lang  = urlLang || localStorage.getItem("roundo_lang")  || "ar";
@@ -68,17 +76,23 @@
     return app;
   }
 
-  function shuffle(a){
-  for (var i=a.length-1; i>0; i--){
-    var j = Math.floor(Math.random()*(i+1));
-    var tmp=a[i]; a[i]=a[j]; a[j]=tmp;
+  // ===== routing =====
+  function setRouteFromHash(){
+    state.route = (location.hash.replace("#/","") || "splash");
+    render();
   }
-  return a;
-}
+  window.addEventListener("hashchange", setRouteFromHash);
 
-  // ===== route & lang/theme =====
-  window.addEventListener("hashchange", function(){ state.route = location.hash.replace("#/","") || "splash"; render(); });
+  // التقاط النقر على روابط #/.. حتى لو المتصفح تجاهل اللمس
+  document.addEventListener("click", function(e){
+    var a = e.target && e.target.closest && e.target.closest('a[href^="#/"]');
+    if (!a) return;
+    e.preventDefault();
+    var r = a.getAttribute("href").slice(2) || "splash";
+    if (r !== state.route) location.hash = "#/"+r; else render();
+  });
 
+  // ===== lang/theme =====
   function setLang(l){
     lang=l; localStorage.setItem("roundo_lang", l);
     document.documentElement.lang=l; document.documentElement.dir=(l==="ar"?"rtl":"ltr");
@@ -204,8 +218,13 @@
     var sp=$("#selPlayers"); if (sp) sp.addEventListener("change", function(e){ state.lobby.players=parseInt(e.target.value,10); render(); });
     var st=$("#selTime");    if (st) st.addEventListener("change",  function(e){ state.lobby.timeMs=parseInt(e.target.value,10); });
     var bp=$("#btnPower");   if (bp) bp.addEventListener("click",   function(){ state.lobby.powerups=!state.lobby.powerups; render(); });
-    var bs=$("#btnStart");   if (bs) bs.addEventListener("click",   function(){ state.questionIx=0;state.score=0;state.streak=0;state._awarded=false; location.hash="#/question"; });
+    var bs=$("#btnStart");   if (bs) bs.addEventListener("click",   function(ev){
+      ev.preventDefault(); ev.stopPropagation();
+      state.questionIx=0; state.score=0; state.streak=0; state._awarded=false; state._qAdvanced=false;
+      state.route="question"; location.hash="#/question";
+    });
   }
+
   var QUESTIONS = [
     {id:1,prompt_ar:"ما عاصمة فرنسا؟",prompt_en:"What is the capital of France?",
       answers:[{ar:"باريس",en:"Paris",correct:true},{ar:"روما",en:"Rome"},{ar:"مدريد",en:"Madrid"},{ar:"برلين",en:"Berlin"}]},
@@ -220,18 +239,20 @@
     {id:6,prompt_ar:"عملة الإمارات العربية المتحدة؟",prompt_en:"The currency of the UAE?",
       answers:[{ar:"اليورو",en:"Euro"},{ar:"الدرهم",en:"Dirham",correct:true},{ar:"الدولار",en:"Dollar"},{ar:"الريال",en:"Riyal"}]}
   ];
-
-  // ترتيب عشوائي لفه الأسئلة الحالية
- var Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
+  var Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
 
   function mmss(ms){ var s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2); }
 
   function renderQuestion(){
     if (state._remaining !== state.lobby.timeMs) state._remaining = state.lobby.timeMs;
-    var prompt = (lang==="ar")? q.prompt_ar : q.prompt_en;
+
+    // إصلاح: عرّف q أولاً ثم احسب prompt
     var q = QUESTIONS[ Q_ORDER[state.questionIx] ];
-var opts = q.answers.map(function(a,i){ return {txt:(lang==="ar"?a.ar:a.en), ok:!!a.correct, i:i}; });
-opts = shuffle(opts); // ترتيب عشوائي للأزرار كل مرة
+    var prompt = (lang==="ar")? q.prompt_ar : q.prompt_en;
+
+    var opts = q.answers.map(function(a,i){ return {txt:(lang==="ar"?a.ar:a.en), ok:!!a.correct, i:i}; });
+    opts = shuffle(opts);
+
     return wrapPhone(screen(t("questionTitle"),
       '<div class="row" style="justify-content:space-between;margin-bottom:8px">'+
         '<span class="kbd">'+t("score")+': '+state.score+'</span>'+
@@ -267,14 +288,14 @@ opts = shuffle(opts); // ترتيب عشوائي للأزرار كل مرة
     }, 100);
   }
   function nextStep(){
-  if (state.questionIx < Q_ORDER.length - 1) {
-    state.questionIx++;
-    if (state.route === "question") render();
-    else location.hash = "#/question";
-  } else {
-    location.hash = "#/results";
+    if (state.questionIx < Q_ORDER.length - 1) {
+      state.questionIx++;
+      if (state.route === "question") render();
+      else location.hash = "#/question";
+    } else {
+      location.hash = "#/results";
+    }
   }
-}
   function wireQuestion(){
     state._qAdvanced=false; startTimer();
     $all(".opt").forEach(function(btn){
@@ -292,7 +313,11 @@ opts = shuffle(opts); // ترتيب عشوائي للأزرار كل مرة
         setTimeout(nextStep, 700);
       });
     });
-    var nb=$("#nextBtn"); if (nb) nb.addEventListener("click", function(){ if(!state._qAdvanced){state.streak=0;state._qAdvanced=true;} nextStep(); });
+    var nb=$("#nextBtn");
+    if (nb) nb.addEventListener("click", function(){
+      if(!state._qAdvanced){state.streak=0;state._qAdvanced=true;}
+      nextStep();
+    });
   }
 
   function renderResults(){
@@ -313,8 +338,8 @@ opts = shuffle(opts); // ترتيب عشوائي للأزرار كل مرة
       var coinsReward = Math.max(0, Math.round(state.score*0.10));
       if (!state._awarded){ state.wallet.coins += coinsReward; saveWallet(); state._awarded = true; }
       state.questionIx=0; state.score=0; state.streak=0; state._qAdvanced=false;
-      location.hash="#/question";
       Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
+      location.hash="#/question";
     });
   }
 
@@ -369,7 +394,7 @@ opts = shuffle(opts); // ترتيب عشوائي للأزرار كل مرة
       outfits.map(item).join("")+
       '<div class="row" style="margin-top:12px">'+
         '<div class="kbd" style="flex:1;text-align:center">'+t("coins")+': '+state.wallet.coins+'</div>'+
-        '<div class="kbd" style="flex:1;text-align:center">'+t("gems")+': '+state.wallet.gems+'</div>'+
+        '<div class="kbd" style="flex:1;text-align:center)">'+t("gems")+': '+state.wallet.gems+'</div>'+
       '</div>'
     ));
   }
@@ -393,124 +418,121 @@ opts = shuffle(opts); // ترتيب عشوائي للأزرار كل مرة
       btn.addEventListener("click", function(){ state.equipped[btn.getAttribute("data-unequip")] = null; saveEquipped(); render(); });
     });
   }
-function renderStore(){
-  var c = state.content;
-  var owned = new Set(state.owned);
 
-  var items = [].concat(
-    c.store.daily.map(function(id){ return c.cosmetics.find(function(x){ return x.id===id; }); }),
-    c.store.weekly.map(function(id){ return c.cosmetics.find(function(x){ return x.id===id; }); })
-  ).filter(Boolean);
+  // ===== Store page (list for buy/equip) =====
+  function renderStore(){
+    var c = state.content;
+    var owned = new Set(state.owned);
 
-  function card(o){
-    var isOwned = owned.has(o.id);
-    var isEq = (state.equipped[o.slot] === o.id);
-    var action = "";
+    var items = [].concat(
+      c.store.daily.map(function(id){ return c.cosmetics.find(function(x){ return x.id===id; }); }),
+      c.store.weekly.map(function(id){ return c.cosmetics.find(function(x){ return x.id===id; }); })
+    ).filter(Boolean);
 
-    if (!isOwned){
-      action = '<button class="btn cta" data-store-buy="'+o.id+'">'+t("buy")+'</button>';
-    } else if (!isEq){
-      action = '<button class="btn" data-store-equip="'+o.id+'" data-slot="'+o.slot+'">'+t("equip")+'</button>';
-    } else {
-      action = '<span class="badge">'+t("owned")+'</span>';
+    function card(o){
+      var isOwned = owned.has(o.id);
+      var isEq = (state.equipped[o.slot] === o.id);
+      var action = "";
+
+      if (!isOwned){
+        action = '<button class="btn cta" data-store-buy="'+o.id+'">'+t("buy")+'</button>';
+      } else if (!isEq){
+        action = '<button class="btn" data-store-equip="'+o.id+'" data-slot="'+o.slot+'">'+t("equip")+'</button>';
+      } else {
+        action = '<span class="badge">'+t("owned")+'</span>';
+      }
+
+      return (
+        '<div class="card store-item" style="width:100%">'+
+          '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">'+
+            '<div><strong>'+o.id.replace(/_/g," ")+'</strong><div class="price">'+fmtPrice(o.price)+'</div></div>'+
+            '<div>'+action+'</div>'+
+          '</div>'+
+        '</div>'
+      );
     }
 
-    return (
-      '<div class="card store-item" style="width:100%">'+
-        '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">'+
-          '<div><strong>'+o.id.replace(/_/g," ")+'</strong><div class="price">'+fmtPrice(o.price)+'</div></div>'+
-          '<div>'+action+'</div>'+
-        '</div>'+
+    return wrapPhone(
+      screen(t("storeTitle"), items.map(card).join("") ) +
+      '<div class="row" style="margin-top:12px">'+
+        '<div class="kbd" style="flex:1;text-align:center">'+t("coins")+': '+state.wallet.coins+'</div>'+
+        '<div class="kbd" style="flex:1;text-align:center">'+t("gems")+': '+state.wallet.gems+'</div>'+
       '</div>'
     );
   }
-
-  return wrapPhone(
-    screen(t("storeTitle"), items.map(card).join("") ) +
-    '<div class="row" style="margin-top:12px">'+
-      '<div class="kbd" style="flex:1;text-align:center">'+t("coins")+': '+state.wallet.coins+'</div>'+
-      '<div class="kbd" style="flex:1;text-align:center">'+t("gems")+': '+state.wallet.gems+'</div>'+
-    '</div>'
-  );
-}
-
-function wireStore(){
-  // شراء
-  $all("[data-store-buy]").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      var id = btn.getAttribute("data-store-buy");
-      var item = (state.content.cosmetics || []).find(function(x){ return x.id===id; }) || {};
-      var price = item.price || {};
-      if (price.coins && state.wallet.coins < price.coins){ alert(t("notEnough")); return; }
-      if (price.gems  && state.wallet.gems  < price.gems ){ alert(t("notEnough")); return; }
-      if (price.coins) state.wallet.coins -= price.coins;
-      if (price.gems ) state.wallet.gems  -= price.gems;
-      state.owned.push(id);
-      saveOwned(); saveWallet();
-      render();
+  function wireStore(){
+    $all("[data-store-buy]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var id = btn.getAttribute("data-store-buy");
+        var item = (state.content.cosmetics || []).find(function(x){ return x.id===id; }) || {};
+        var price = item.price || {};
+        if (price.coins && state.wallet.coins < price.coins){ alert(t("notEnough")); return; }
+        if (price.gems  && state.wallet.gems  < price.gems ){ alert(t("notEnough")); return; }
+        if (price.coins) state.wallet.coins -= price.coins;
+        if (price.gems ) state.wallet.gems  -= price.gems;
+        state.owned.push(id);
+        saveOwned(); saveWallet();
+        render();
+      });
     });
-  });
-
-  // تجهيز مباشر إن كان مملوكًا
-  $all("[data-store-equip]").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      var id = btn.getAttribute("data-store-equip");
-      var slot = btn.getAttribute("data-slot");
-      // تحقّق ملكية
-      if (state.owned.indexOf(id) === -1){
-        alert(t("notEnough")); // أو رسالة "اشترِ أولاً" لو تحب تغيّر النص
-        return;
-      }
-      state.equipped[slot] = id;
-      saveEquipped();
-      render();
+    $all("[data-store-equip]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var id = btn.getAttribute("data-store-equip");
+        var slot = btn.getAttribute("data-slot");
+        if (state.owned.indexOf(id) === -1){
+          alert(t("notEnough"));
+          return;
+        }
+        state.equipped[slot] = id;
+        saveEquipped();
+        render();
+      });
     });
-  });
-}
   }
-  
-// v14 render — يرسم الصفحة ثم يربط الأحداث دائماً
-function render(){
-  var app = getApp();
-  loadContent(function(){
-    clearInterval(state._timerId);
 
-    var html="";
-    switch(state.route){
-      case "splash":    html = renderSplash();        break;
-      case "home":      html = renderHome();          break;
-      case "modes":     html = renderModes();         break;
-      case "lobby":     html = renderLobby();         break;
-      case "question":  html = renderQuestion();      break;
-      case "results":   html = renderResults();       break;
-      case "customization": html = renderCustomization(); break;
-      case "store":     html = renderStore();         break;
-      default:          html = renderSplash();
-    }
+  // ===== mark active tab (optional) =====
+  function markActiveTab(){
+    var r = state.route || "splash";
+    $all("header .tabs a").forEach(function(a){
+      var isActive = (a.getAttribute("href") === "#/"+r);
+      if (isActive) a.classList.add("active"); else a.classList.remove("active");
+    });
+  }
 
-    app.innerHTML = html;
-   if (state.route==="store")        wireStore();
-if (state.route==="lobby")        wireLobby();
-    if (typeof markActiveTab === "function") markActiveTab();
+  // ===== render (mount + wire) =====
+  function render(){
+    var app = getApp();
+    loadContent(function(){
+      clearInterval(state._timerId);
 
-    // مهم: ربط الأحداث حسب الصفحة
-    switch(state.route){
-      case "modes":        wireModes();         break;
-      case "lobby":        wireLobby();         break;
-      case "question":     wireQuestion();      break;
-      case "results":      wireResults();       break;
-      case "customization":wireCustomization(); break;
-    }
-  });
-}
-function markActiveTab(){
-  var r = state.route || "splash";
-  $all("header .tabs a").forEach(function(a){
-    var isActive = (a.getAttribute("href") === "#/"+r);
-    if (isActive) a.classList.add("active");
-    else a.classList.remove("active");
-  });
-}
+      var html="";
+      switch(state.route){
+        case "splash":    html = renderSplash();        break;
+        case "home":      html = renderHome();          break;
+        case "modes":     html = renderModes();         break;
+        case "lobby":     html = renderLobby();         break;
+        case "question":  html = renderQuestion();      break;
+        case "results":   html = renderResults();       break;
+        case "customization": html = renderCustomization(); break;
+        case "store":     html = renderStore();         break;
+        default:          html = renderSplash();
+      }
+
+      app.innerHTML = html;
+      if (typeof markActiveTab === "function") markActiveTab();
+
+      // اربط الأحداث حسب الصفحة
+      switch(state.route){
+        case "modes":         wireModes();         break;
+        case "lobby":         wireLobby();         break;
+        case "question":      wireQuestion();      break;
+        case "results":       wireResults();       break;
+        case "customization": wireCustomization(); break;
+        case "store":         wireStore();         break;
+      }
+    });
+  }
+
   // ===== boot =====
   function boot(){
     var bl=$("#btnLang");  if (bl) bl.addEventListener("click", function(){ setLang(lang==="ar"?"en":"ar"); });
