@@ -206,7 +206,6 @@
     var bp=$("#btnPower");   if (bp) bp.addEventListener("click",   function(){ state.lobby.powerups=!state.lobby.powerups; render(); });
     var bs=$("#btnStart");   if (bs) bs.addEventListener("click",   function(){ state.questionIx=0;state.score=0;state.streak=0;state._awarded=false; location.hash="#/question"; });
   }
-
   var QUESTIONS = [
     {id:1,prompt_ar:"ما عاصمة فرنسا؟",prompt_en:"What is the capital of France?",
       answers:[{ar:"باريس",en:"Paris",correct:true},{ar:"روما",en:"Rome"},{ar:"مدريد",en:"Madrid"},{ar:"برلين",en:"Berlin"}]},
@@ -394,18 +393,80 @@ opts = shuffle(opts); // ترتيب عشوائي للأزرار كل مرة
       btn.addEventListener("click", function(){ state.equipped[btn.getAttribute("data-unequip")] = null; saveEquipped(); render(); });
     });
   }
+function renderStore(){
+  var c = state.content;
+  var owned = new Set(state.owned);
 
-  function renderStore(){
-    var c=state.content;
-    var items=[].concat(
-      c.store.daily.map(function(id){return c.cosmetics.find(function(x){return x.id===id;});}),
-      c.store.weekly.map(function(id){return c.cosmetics.find(function(x){return x.id===id;});})
-    ).filter(Boolean);
-    return wrapPhone(screen(t("storeTitle"),
-      items.map(function(o){
-        return '<div class="card store-item" style="width:100%"><div><div><strong>'+o.id.replace(/_/g," ")+'</strong></div><div class="price">'+fmtPrice(o.price)+'</div></div><a class="btn" href="#/customization">'+t("equip")+'</a></div>';
-      }).join("")
-    ));
+  var items = [].concat(
+    c.store.daily.map(function(id){ return c.cosmetics.find(function(x){ return x.id===id; }); }),
+    c.store.weekly.map(function(id){ return c.cosmetics.find(function(x){ return x.id===id; }); })
+  ).filter(Boolean);
+
+  function card(o){
+    var isOwned = owned.has(o.id);
+    var isEq = (state.equipped[o.slot] === o.id);
+    var action = "";
+
+    if (!isOwned){
+      action = '<button class="btn cta" data-store-buy="'+o.id+'">'+t("buy")+'</button>';
+    } else if (!isEq){
+      action = '<button class="btn" data-store-equip="'+o.id+'" data-slot="'+o.slot+'">'+t("equip")+'</button>';
+    } else {
+      action = '<span class="badge">'+t("owned")+'</span>';
+    }
+
+    return (
+      '<div class="card store-item" style="width:100%">'+
+        '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">'+
+          '<div><strong>'+o.id.replace(/_/g," ")+'</strong><div class="price">'+fmtPrice(o.price)+'</div></div>'+
+          '<div>'+action+'</div>'+
+        '</div>'+
+      '</div>'
+    );
+  }
+
+  return wrapPhone(
+    screen(t("storeTitle"), items.map(card).join("") ) +
+    '<div class="row" style="margin-top:12px">'+
+      '<div class="kbd" style="flex:1;text-align:center">'+t("coins")+': '+state.wallet.coins+'</div>'+
+      '<div class="kbd" style="flex:1;text-align:center">'+t("gems")+': '+state.wallet.gems+'</div>'+
+    '</div>'
+  );
+}
+
+function wireStore(){
+  // شراء
+  $all("[data-store-buy]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var id = btn.getAttribute("data-store-buy");
+      var item = (state.content.cosmetics || []).find(function(x){ return x.id===id; }) || {};
+      var price = item.price || {};
+      if (price.coins && state.wallet.coins < price.coins){ alert(t("notEnough")); return; }
+      if (price.gems  && state.wallet.gems  < price.gems ){ alert(t("notEnough")); return; }
+      if (price.coins) state.wallet.coins -= price.coins;
+      if (price.gems ) state.wallet.gems  -= price.gems;
+      state.owned.push(id);
+      saveOwned(); saveWallet();
+      render();
+    });
+  });
+
+  // تجهيز مباشر إن كان مملوكًا
+  $all("[data-store-equip]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var id = btn.getAttribute("data-store-equip");
+      var slot = btn.getAttribute("data-slot");
+      // تحقّق ملكية
+      if (state.owned.indexOf(id) === -1){
+        alert(t("notEnough")); // أو رسالة "اشترِ أولاً" لو تحب تغيّر النص
+        return;
+      }
+      state.equipped[slot] = id;
+      saveEquipped();
+      render();
+    });
+  });
+}
   }
   
 // v14 render — يرسم الصفحة ثم يربط الأحداث دائماً
@@ -428,6 +489,8 @@ function render(){
     }
 
     app.innerHTML = html;
+   if (state.route==="store")        wireStore();
+if (state.route==="lobby")        wireLobby();
     if (typeof markActiveTab === "function") markActiveTab();
 
     // مهم: ربط الأحداث حسب الصفحة
