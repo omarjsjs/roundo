@@ -1,4 +1,4 @@
-/* Roundo v16 – routing hardening, lobby start fix, store logic, question flow fix */
+/* Roundo v17 – routing hardening, lobby start, store gating, content.json questions, shuffle, sounds, reset */
 (function () {
   'use strict';
 
@@ -14,7 +14,7 @@
         nothingEquipped:"لا شيء مجهّز", players:"اللاعبون", rotate:"فضلاً استخدم الجهاز بوضع الطول",
         score:"النقاط", streak:"سلسلة", reward:"المكافأة",
         startMatch:"ابدأ المباراة", timePerQ:"الوقت لكل سؤال", powerups:"القدرات", on:"تشغيل", off:"إيقاف",
-        mode:"النمط", you:"أنت"},
+        mode:"النمط", you:"أنت", sound:"الصوت", reset:"إعادة ضبط", confirmBuy:"تأكيد الشراء", needOwn:"اشتري العنصر أولًا"},
     en:{app:"Roundo",badge:"Prototype",home:"Home",modes:"Game Modes",lobby:"Lobby",store:"Store",
         splashTitle:"Splash",quickPlay:"Quick Play",playNow:"Play Now",
         modesTitle:"Game Modes",lobbyTitle:"Lobby",storeTitle:"Store",avatarTitle:"My Avatar",
@@ -25,7 +25,7 @@
         nothingEquipped:"Nothing equipped", players:"Players", rotate:"Please use portrait orientation",
         score:"Score", streak:"Streak", reward:"Reward",
         startMatch:"Start Match", timePerQ:"Time per question", powerups:"Power-ups", on:"On", off:"Off",
-        mode:"Mode", you:"You"}
+        mode:"Mode", you:"You", sound:"Sound", reset:"Reset", confirmBuy:"Confirm purchase", needOwn:"Please buy this first"}
   };
 
   // ===== helpers =====
@@ -33,19 +33,14 @@
   function $all(s, r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
   function t(k){ return (STR[lang] && STR[lang][k]) || k; }
   function safeText(id, txt){ var el = $("#"+id); if (el) el.textContent = txt; }
-
-  function shuffle(a){
-    for (var i=a.length-1; i>0; i--){
-      var j = Math.floor(Math.random()*(i+1));
-      var tmp=a[i]; a[i]=a[j]; a[j]=tmp;
-    }
-    return a;
-  }
+  function shuffle(a){ for (var i=a.length-1; i>0; i--){ var j = Math.floor(Math.random()*(i+1)); var tmp=a[i]; a[i]=a[j]; a[j]=tmp; } return a; }
+  function mmss(ms){ var s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2); }
 
   // ===== state =====
   var urlLang = (new URLSearchParams(location.search)).get("lang");
   var lang  = urlLang || localStorage.getItem("roundo_lang")  || "ar";
   var theme = localStorage.getItem("roundo_theme") || "dark";
+  var settings = JSON.parse(localStorage.getItem("roundo_settings") || '{"sound":true}');
 
   var state = {
     route: (location.hash.replace("#/","") || "splash"),
@@ -58,36 +53,41 @@
     _qAdvanced:false, _timerId:null, _remaining:20000,
     lobby:{players:2, timeMs:20000, powerups:true}
   };
-
   function saveOwned(){  localStorage.setItem("roundo_owned", JSON.stringify(state.owned)); }
   function saveWallet(){ localStorage.setItem("roundo_wallet", JSON.stringify(state.wallet)); }
   function saveEquipped(){ localStorage.setItem("roundo_equipped", JSON.stringify(state.equipped)); }
+  function saveSettings(){ localStorage.setItem("roundo_settings", JSON.stringify(settings)); }
   function fmtPrice(p){ return !p ? t("free") : (p.coins ? (p.coins + " " + t("coins")) : (p.gems + " " + t("gems"))); }
 
-  // mount #app if missing
+  // ===== sounds (WebAudio) =====
+  var AC = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext||window.webkitAudioContext)() : null;
+  function beep(freq, dur){
+    if (!AC || !settings.sound) return;
+    var o=AC.createOscillator(), g=AC.createGain();
+    o.type="sine"; o.frequency.value=freq;
+    g.gain.value=0.001; o.connect(g); g.connect(AC.destination);
+    var now=AC.currentTime; g.gain.exponentialRampToValueAtTime(0.2, now+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur/1000);
+    o.start(); o.stop(now + dur/1000);
+  }
+  function snd(type){ if(type==="ok") beep(880,180); else if(type==="bad") beep(220,220); }
+
+  // ===== mount #app if missing =====
   function getApp(){
     var app = $("#app");
     if (!app){
-      app = document.createElement("main");
-      app.id = "app";
-      var header = $("header") || document.body;
-      header.parentNode.insertBefore(app, header.nextSibling);
+      app = document.createElement("main"); app.id = "app";
+      var header = $("header") || document.body; header.parentNode.insertBefore(app, header.nextSibling);
     }
     return app;
   }
 
   // ===== routing =====
-  function setRouteFromHash(){
-    state.route = (location.hash.replace("#/","") || "splash");
-    render();
-  }
+  function setRouteFromHash(){ state.route = (location.hash.replace("#/","") || "splash"); render(); }
   window.addEventListener("hashchange", setRouteFromHash);
-
-  // التقاط النقر على روابط #/.. حتى لو المتصفح تجاهل اللمس
   document.addEventListener("click", function(e){
     var a = e.target && e.target.closest && e.target.closest('a[href^="#/"]');
-    if (!a) return;
-    e.preventDefault();
+    if (!a) return; e.preventDefault();
     var r = a.getAttribute("href").slice(2) || "splash";
     if (r !== state.route) location.hash = "#/"+r; else render();
   });
@@ -108,12 +108,53 @@
     else document.body.classList.remove("theme-light");
   }
 
-  // ===== content =====
+  // ===== content (with questions) =====
+  var QUESTIONS = [
+    {id:1,prompt_ar:"ما عاصمة فرنسا؟",prompt_en:"What is the capital of France?",
+      answers:[{ar:"باريس",en:"Paris",correct:true},{ar:"روما",en:"Rome"},{ar:"مدريد",en:"Madrid"},{ar:"برلين",en:"Berlin"}]},
+    {id:2,prompt_ar:"٢ + ٢ = ؟",prompt_en:"2 + 2 = ?",
+      answers:[{ar:"٣",en:"3"},{ar:"٤",en:"4",correct:true},{ar:"٥",en:"5"},{ar:"٦",en:"6"}]},
+    {id:3,prompt_ar:"ما لون السماء الصافي عادةً؟",prompt_en:"What color is a clear sky?",
+      answers:[{ar:"أحمر",en:"Red"},{ar:"أزرق",en:"Blue",correct:true},{ar:"أخضر",en:"Green"},{ar:"أصفر",en:"Yellow"}]},
+    {id:4,prompt_ar:"أكبر كوكب في مجموعتنا الشمسية هو؟",prompt_en:"The largest planet in our solar system is?",
+      answers:[{ar:"المشتري",en:"Jupiter",correct:true},{ar:"زحل",en:"Saturn"},{ar:"الأرض",en:"Earth"},{ar:"المريخ",en:"Mars"}]},
+    {id:5,prompt_ar:"لغة تنسيق صفحات الويب هي؟",prompt_en:"The language used to style webpages is?",
+      answers:[{ar:"HTML",en:"HTML"},{ar:"CSS",en:"CSS",correct:true},{ar:"SQL",en:"SQL"},{ar:"C++",en:"C++"}]},
+    {id:6,prompt_ar:"عملة الإمارات العربية المتحدة؟",prompt_en:"The currency of the UAE?",
+      answers:[{ar:"اليورو",en:"Euro"},{ar:"الدرهم",en:"Dirham",correct:true},{ar:"الدولار",en:"Dollar"},{ar:"الريال",en:"Riyal"}]}
+  ];
+  function applyContentQuestions(json){
+    if (!json || !json.questions || !json.questions.length) return;
+    var out = [];
+    for (var i=0;i<json.questions.length;i++){
+      var q=json.questions[i];
+      // توقع شكل: {id, category, difficulty, ar:{prompt, answers:[{text,correct}]}, en:{prompt, answers:[{text,correct}]}}
+      if (!q.ar || !q.en) continue;
+      var answers = [];
+      for (var j=0;j<q.ar.answers.length;j++){
+        var a_ar = q.ar.answers[j] || {};
+        var a_en = (q.en.answers[j] || {});
+        answers.push({ ar:a_ar.text||"", en:a_en.text||"", correct: !!(a_ar.correct||a_en.correct) });
+      }
+      out.push({
+        id:q.id || (i+1),
+        prompt_ar:q.ar.prompt || "",
+        prompt_en:q.en.prompt || "",
+        answers:answers
+      });
+    }
+    if (out.length) QUESTIONS = out;
+  }
+
   function loadContent(cb){
     if (state.content){ if(cb) cb(); return; }
     fetch("content.json", {cache:"no-store"})
       .then(function(r){ if(!r.ok) throw new Error(); return r.json(); })
-      .then(function(json){ state.content = json; if(cb) cb(); })
+      .then(function(json){
+        state.content = json;
+        try { applyContentQuestions(json); } catch(e){}
+        if(cb) cb();
+      })
       .catch(function(){
         state.content = {
           characters:[{name_ar:"تروفي",name_en:"Trophy",default:{colorway:"Gold"}}],
@@ -124,7 +165,8 @@
             {id:"cape_violet",slot:"cape",price:{gems:5}},
             {id:"charm_sun",slot:"charm",price:null}
           ],
-          store:{daily:["headband_red","scarf_teal","visor_purple"],weekly:["cape_violet","charm_sun"]}
+          store:{daily:["headband_red","scarf_teal","visor_purple"],weekly:["cape_violet","charm_sun"]},
+          questions:[]
         };
         if(cb) cb();
       });
@@ -149,9 +191,11 @@
     return wrapPhone(screen(t("home"),
       '<a class="btn" href="#/modes" style="width:100%;margin-top:6px">'+t("modesTitle")+'</a>' +
       '<a class="btn" href="#/customization" style="width:100%;margin-top:6px">'+t("avatarTitle")+'</a>' +
-      '<a class="btn" href="#/store" style="width:100%;margin-top:6px">'+t("storeTitle")+'</a>'
+      '<a class="btn" href="#/store" style="width:100%;margin-top:6px">'+t("storeTitle")+'</a>' +
+      '<button class="btn" id="btnReset" style="width:100%;margin-top:6px">'+t("reset")+'</button>'
     ));
   }
+
   function renderModes(){
     var modes = [
       {id:"quick", name:"Quick Match", playable:true},
@@ -174,6 +218,8 @@
         state.currentMode = btn.getAttribute("data-start-mode");
         state.lobby = {players:2,timeMs:20000,powerups:true};
         state.questionIx=0; state.score=0; state.streak=0; state._awarded=false;
+        // خلط ترتيب الأسئلة عند بداية كل مباراة
+        Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
         location.hash="#/lobby";
       });
     });
@@ -202,8 +248,9 @@
             '</select>'+
           '</label>'+
         '</div>'+
-        '<div class="row" style="margin-top:8px;justify-content:space-between">'+
+        '<div class="row" style="margin-top:8px;justify-content:space-between;gap:8px;flex-wrap:wrap">'+
           '<div class="kbd">'+t("powerups")+': <button id="btnPower" class="btn" style="margin-inline-start:6px">'+(state.lobby.powerups?t("on"):t("off"))+'</button></div>'+
+          '<div class="kbd">'+t("sound")+': <button id="btnSound" class="btn" style="margin-inline-start:6px">'+(settings.sound?t("on"):t("off"))+'</button></div>'+
           '<a class="btn" href="#/modes">'+t("modesTitle")+'</a>'+
         '</div>'+
       '</div>'+
@@ -218,41 +265,18 @@
     var sp=$("#selPlayers"); if (sp) sp.addEventListener("change", function(e){ state.lobby.players=parseInt(e.target.value,10); render(); });
     var st=$("#selTime");    if (st) st.addEventListener("change",  function(e){ state.lobby.timeMs=parseInt(e.target.value,10); });
     var bp=$("#btnPower");   if (bp) bp.addEventListener("click",   function(){ state.lobby.powerups=!state.lobby.powerups; render(); });
-    var bs=$("#btnStart");   if (bs) bs.addEventListener("click",   function(ev){
-      ev.preventDefault(); ev.stopPropagation();
-      state.questionIx=0; state.score=0; state.streak=0; state._awarded=false; state._qAdvanced=false;
-      state.route="question"; location.hash="#/question";
-    });
+    var bs=$("#btnStart");   if (bs) bs.addEventListener("click",   function(ev){ ev.preventDefault(); ev.stopPropagation(); state.questionIx=0; state.score=0; state.streak=0; state._awarded=false; state._qAdvanced=false; state.route="question"; location.hash="#/question"; });
+    var bsnd=$("#btnSound"); if (bsnd) bsnd.addEventListener("click", function(){ settings.sound=!settings.sound; saveSettings(); render(); });
   }
 
-  var QUESTIONS = [
-    {id:1,prompt_ar:"ما عاصمة فرنسا؟",prompt_en:"What is the capital of France?",
-      answers:[{ar:"باريس",en:"Paris",correct:true},{ar:"روما",en:"Rome"},{ar:"مدريد",en:"Madrid"},{ar:"برلين",en:"Berlin"}]},
-    {id:2,prompt_ar:"٢ + ٢ = ؟",prompt_en:"2 + 2 = ?",
-      answers:[{ar:"٣",en:"3"},{ar:"٤",en:"4",correct:true},{ar:"٥",en:"5"},{ar:"٦",en:"6"}]},
-    {id:3,prompt_ar:"ما لون السماء الصافي عادةً؟",prompt_en:"What color is a clear sky?",
-      answers:[{ar:"أحمر",en:"Red"},{ar:"أزرق",en:"Blue",correct:true},{ar:"أخضر",en:"Green"},{ar:"أصفر",en:"Yellow"}]},
-    {id:4,prompt_ar:"أكبر كوكب في مجموعتنا الشمسية هو؟",prompt_en:"The largest planet in our solar system is?",
-      answers:[{ar:"المشتري",en:"Jupiter",correct:true},{ar:"زحل",en:"Saturn"},{ar:"الأرض",en:"Earth"},{ar:"المريخ",en:"Mars"}]},
-    {id:5,prompt_ar:"لغة تنسيق صفحات الويب هي؟",prompt_en:"The language used to style webpages is?",
-      answers:[{ar:"HTML",en:"HTML"},{ar:"CSS",en:"CSS",correct:true},{ar:"SQL",en:"SQL"},{ar:"C++",en:"C++"}]},
-    {id:6,prompt_ar:"عملة الإمارات العربية المتحدة؟",prompt_en:"The currency of the UAE?",
-      answers:[{ar:"اليورو",en:"Euro"},{ar:"الدرهم",en:"Dirham",correct:true},{ar:"الدولار",en:"Dollar"},{ar:"الريال",en:"Riyal"}]}
-  ];
   var Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
-
-  function mmss(ms){ var s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2); }
 
   function renderQuestion(){
     if (state._remaining !== state.lobby.timeMs) state._remaining = state.lobby.timeMs;
-
-    // إصلاح: عرّف q أولاً ثم احسب prompt
     var q = QUESTIONS[ Q_ORDER[state.questionIx] ];
     var prompt = (lang==="ar")? q.prompt_ar : q.prompt_en;
-
     var opts = q.answers.map(function(a,i){ return {txt:(lang==="ar"?a.ar:a.en), ok:!!a.correct, i:i}; });
     opts = shuffle(opts);
-
     return wrapPhone(screen(t("questionTitle"),
       '<div class="row" style="justify-content:space-between;margin-bottom:8px">'+
         '<span class="kbd">'+t("score")+': '+state.score+'</span>'+
@@ -307,17 +331,17 @@
         var nb=$("#nextBtn"); if (nb) nb.textContent = ok ? t("correct") : t("wrong");
         state._qAdvanced=true;
         if (ok){
+          snd("ok");
           var bonus = Math.ceil(state._remaining/1000)*5;
           state.score += 100 + bonus; state.streak += 1;
-        } else { state.streak = 0; }
+        } else {
+          snd("bad");
+          state.streak = 0;
+        }
         setTimeout(nextStep, 700);
       });
     });
-    var nb=$("#nextBtn");
-    if (nb) nb.addEventListener("click", function(){
-      if(!state._qAdvanced){state.streak=0;state._qAdvanced=true;}
-      nextStep();
-    });
+    var nb=$("#nextBtn"); if (nb) nb.addEventListener("click", function(){ if(!state._qAdvanced){state.streak=0;state._qAdvanced=true;} nextStep(); });
   }
 
   function renderResults(){
@@ -404,6 +428,8 @@
         var id=btn.getAttribute("data-buy");
         var item=(state.content.cosmetics || []).find(function(x){return x.id===id;}) || {};
         var price=item.price || {};
+        var ask = (!price || (!price.coins && !price.gems)) ? true : confirm(t("confirmBuy")+" — "+fmtPrice(price));
+        if (!ask) return;
         if (price.coins && state.wallet.coins<price.coins) { alert(t("notEnough")); return; }
         if (price.gems  && state.wallet.gems <price.gems ) { alert(t("notEnough")); return; }
         if (price.coins) state.wallet.coins-=price.coins;
@@ -419,21 +445,18 @@
     });
   }
 
-  // ===== Store page (list for buy/equip) =====
+  // ===== Store list page =====
   function renderStore(){
     var c = state.content;
     var owned = new Set(state.owned);
-
     var items = [].concat(
       c.store.daily.map(function(id){ return c.cosmetics.find(function(x){ return x.id===id; }); }),
       c.store.weekly.map(function(id){ return c.cosmetics.find(function(x){ return x.id===id; }); })
     ).filter(Boolean);
-
     function card(o){
       var isOwned = owned.has(o.id);
       var isEq = (state.equipped[o.slot] === o.id);
       var action = "";
-
       if (!isOwned){
         action = '<button class="btn cta" data-store-buy="'+o.id+'">'+t("buy")+'</button>';
       } else if (!isEq){
@@ -441,7 +464,6 @@
       } else {
         action = '<span class="badge">'+t("owned")+'</span>';
       }
-
       return (
         '<div class="card store-item" style="width:100%">'+
           '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">'+
@@ -451,7 +473,6 @@
         '</div>'
       );
     }
-
     return wrapPhone(
       screen(t("storeTitle"), items.map(card).join("") ) +
       '<div class="row" style="margin-top:12px">'+
@@ -466,6 +487,8 @@
         var id = btn.getAttribute("data-store-buy");
         var item = (state.content.cosmetics || []).find(function(x){ return x.id===id; }) || {};
         var price = item.price || {};
+        var ask = (!price || (!price.coins && !price.gems)) ? true : confirm(t("confirmBuy")+" — "+fmtPrice(price));
+        if (!ask) return;
         if (price.coins && state.wallet.coins < price.coins){ alert(t("notEnough")); return; }
         if (price.gems  && state.wallet.gems  < price.gems ){ alert(t("notEnough")); return; }
         if (price.coins) state.wallet.coins -= price.coins;
@@ -479,10 +502,7 @@
       btn.addEventListener("click", function(){
         var id = btn.getAttribute("data-store-equip");
         var slot = btn.getAttribute("data-slot");
-        if (state.owned.indexOf(id) === -1){
-          alert(t("notEnough"));
-          return;
-        }
+        if (state.owned.indexOf(id) === -1){ alert(t("needOwn")); return; }
         state.equipped[slot] = id;
         saveEquipped();
         render();
@@ -504,7 +524,6 @@
     var app = getApp();
     loadContent(function(){
       clearInterval(state._timerId);
-
       var html="";
       switch(state.route){
         case "splash":    html = renderSplash();        break;
@@ -517,12 +536,12 @@
         case "store":     html = renderStore();         break;
         default:          html = renderSplash();
       }
-
       app.innerHTML = html;
       if (typeof markActiveTab === "function") markActiveTab();
 
       // اربط الأحداث حسب الصفحة
       switch(state.route){
+        case "home":          $("#btnReset") && $("#btnReset").addEventListener("click", function(){ localStorage.clear(); location.reload(); }); break;
         case "modes":         wireModes();         break;
         case "lobby":         wireLobby();         break;
         case "question":      wireQuestion();      break;
