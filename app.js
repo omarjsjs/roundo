@@ -1,4 +1,4 @@
-/* Roundo v17 – routing hardening, lobby start, store gating, content.json questions, shuffle, sounds, reset */
+/* Roundo v18 – Categories/Difficulty filters + Power-ups (Hint/Freeze/Shield) */
 (function () {
   'use strict';
 
@@ -14,7 +14,10 @@
         nothingEquipped:"لا شيء مجهّز", players:"اللاعبون", rotate:"فضلاً استخدم الجهاز بوضع الطول",
         score:"النقاط", streak:"سلسلة", reward:"المكافأة",
         startMatch:"ابدأ المباراة", timePerQ:"الوقت لكل سؤال", powerups:"القدرات", on:"تشغيل", off:"إيقاف",
-        mode:"النمط", you:"أنت", sound:"الصوت", reset:"إعادة ضبط", confirmBuy:"تأكيد الشراء", needOwn:"اشتري العنصر أولًا"},
+        mode:"النمط", you:"أنت",
+        category:"التصنيف", difficulty:"الصعوبة", any:"الكل",
+        hint:"Hint", freeze:"Freeze", shield:"Shield",
+        sound:"الصوت", reset:"إعادة ضبط", confirmBuy:"تأكيد الشراء", needOwn:"اشتري العنصر أولًا"},
     en:{app:"Roundo",badge:"Prototype",home:"Home",modes:"Game Modes",lobby:"Lobby",store:"Store",
         splashTitle:"Splash",quickPlay:"Quick Play",playNow:"Play Now",
         modesTitle:"Game Modes",lobbyTitle:"Lobby",storeTitle:"Store",avatarTitle:"My Avatar",
@@ -25,7 +28,10 @@
         nothingEquipped:"Nothing equipped", players:"Players", rotate:"Please use portrait orientation",
         score:"Score", streak:"Streak", reward:"Reward",
         startMatch:"Start Match", timePerQ:"Time per question", powerups:"Power-ups", on:"On", off:"Off",
-        mode:"Mode", you:"You", sound:"Sound", reset:"Reset", confirmBuy:"Confirm purchase", needOwn:"Please buy this first"}
+        mode:"Mode", you:"You",
+        category:"Category", difficulty:"Difficulty", any:"Any",
+        hint:"Hint", freeze:"Freeze", shield:"Shield",
+        sound:"Sound", reset:"Reset", confirmBuy:"Confirm purchase", needOwn:"Please buy this first"}
   };
 
   // ===== helpers =====
@@ -35,12 +41,15 @@
   function safeText(id, txt){ var el = $("#"+id); if (el) el.textContent = txt; }
   function shuffle(a){ for (var i=a.length-1; i>0; i--){ var j = Math.floor(Math.random()*(i+1)); var tmp=a[i]; a[i]=a[j]; a[j]=tmp; } return a; }
   function mmss(ms){ var s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2); }
+  function uniq(arr){ var m={},out=[]; for(var i=0;i<arr.length;i++){var v=arr[i]; if(v==null) continue; var k=String(v).toLowerCase(); if(!m[k]){m[k]=1; out.push(v);} } return out; }
 
   // ===== state =====
   var urlLang = (new URLSearchParams(location.search)).get("lang");
   var lang  = urlLang || localStorage.getItem("roundo_lang")  || "ar";
   var theme = localStorage.getItem("roundo_theme") || "dark";
   var settings = JSON.parse(localStorage.getItem("roundo_settings") || '{"sound":true}');
+
+  var COSTS = { hint:30, freeze:40, shield:50 };
 
   var state = {
     route: (location.hash.replace("#/","") || "splash"),
@@ -49,8 +58,10 @@
     equipped: JSON.parse(localStorage.getItem("roundo_equipped") || '{"headband":null,"scarf":null,"visor":null,"cape":null,"charm":null}'),
     content: null,
     currentMode: null,
+    filters:{ category:"any", difficulty:"any" },
     questionIx: 0, score: 0, streak: 0, _awarded:false,
     _qAdvanced:false, _timerId:null, _remaining:20000,
+    _frozen:false, _shieldActive:false,
     lobby:{players:2, timeMs:20000, powerups:true}
   };
   function saveOwned(){  localStorage.setItem("roundo_owned", JSON.stringify(state.owned)); }
@@ -59,13 +70,12 @@
   function saveSettings(){ localStorage.setItem("roundo_settings", JSON.stringify(settings)); }
   function fmtPrice(p){ return !p ? t("free") : (p.coins ? (p.coins + " " + t("coins")) : (p.gems + " " + t("gems"))); }
 
-  // ===== sounds (WebAudio) =====
+  // ===== sounds =====
   var AC = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext||window.webkitAudioContext)() : null;
   function beep(freq, dur){
     if (!AC || !settings.sound) return;
     var o=AC.createOscillator(), g=AC.createGain();
-    o.type="sine"; o.frequency.value=freq;
-    g.gain.value=0.001; o.connect(g); g.connect(AC.destination);
+    o.type="sine"; o.frequency.value=freq; g.gain.value=0.001; o.connect(g); g.connect(AC.destination);
     var now=AC.currentTime; g.gain.exponentialRampToValueAtTime(0.2, now+0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, now + dur/1000);
     o.start(); o.stop(now + dur/1000);
@@ -108,44 +118,55 @@
     else document.body.classList.remove("theme-light");
   }
 
-  // ===== content (with questions) =====
-  var QUESTIONS = [
+  // ===== Questions data =====
+  var ALL_QUESTIONS = [
     {id:1,prompt_ar:"ما عاصمة فرنسا؟",prompt_en:"What is the capital of France?",
-      answers:[{ar:"باريس",en:"Paris",correct:true},{ar:"روما",en:"Rome"},{ar:"مدريد",en:"Madrid"},{ar:"برلين",en:"Berlin"}]},
+      answers:[{ar:"باريس",en:"Paris",correct:true},{ar:"روما",en:"Rome"},{ar:"مدريد",en:"Madrid"},{ar:"برلين",en:"Berlin"}], category:"general", difficulty:"easy"},
     {id:2,prompt_ar:"٢ + ٢ = ؟",prompt_en:"2 + 2 = ?",
-      answers:[{ar:"٣",en:"3"},{ar:"٤",en:"4",correct:true},{ar:"٥",en:"5"},{ar:"٦",en:"6"}]},
+      answers:[{ar:"٣",en:"3"},{ar:"٤",en:"4",correct:true},{ar:"٥",en:"5"},{ar:"٦",en:"6"}], category:"math", difficulty:"easy"},
     {id:3,prompt_ar:"ما لون السماء الصافي عادةً؟",prompt_en:"What color is a clear sky?",
-      answers:[{ar:"أحمر",en:"Red"},{ar:"أزرق",en:"Blue",correct:true},{ar:"أخضر",en:"Green"},{ar:"أصفر",en:"Yellow"}]},
+      answers:[{ar:"أحمر",en:"Red"},{ar:"أزرق",en:"Blue",correct:true},{ar:"أخضر",en:"Green"},{ar:"أصفر",en:"Yellow"}], category:"science", difficulty:"easy"},
     {id:4,prompt_ar:"أكبر كوكب في مجموعتنا الشمسية هو؟",prompt_en:"The largest planet in our solar system is?",
-      answers:[{ar:"المشتري",en:"Jupiter",correct:true},{ar:"زحل",en:"Saturn"},{ar:"الأرض",en:"Earth"},{ar:"المريخ",en:"Mars"}]},
+      answers:[{ar:"المشتري",en:"Jupiter",correct:true},{ar:"زحل",en:"Saturn"},{ar:"الأرض",en:"Earth"},{ar:"المريخ",en:"Mars"}], category:"science", difficulty:"easy"},
     {id:5,prompt_ar:"لغة تنسيق صفحات الويب هي؟",prompt_en:"The language used to style webpages is?",
-      answers:[{ar:"HTML",en:"HTML"},{ar:"CSS",en:"CSS",correct:true},{ar:"SQL",en:"SQL"},{ar:"C++",en:"C++"}]},
+      answers:[{ar:"HTML",en:"HTML"},{ar:"CSS",en:"CSS",correct:true},{ar:"SQL",en:"SQL"},{ar:"C++",en:"C++"}], category:"web", difficulty:"easy"},
     {id:6,prompt_ar:"عملة الإمارات العربية المتحدة؟",prompt_en:"The currency of the UAE?",
-      answers:[{ar:"اليورو",en:"Euro"},{ar:"الدرهم",en:"Dirham",correct:true},{ar:"الدولار",en:"Dollar"},{ar:"الريال",en:"Riyal"}]}
+      answers:[{ar:"اليورو",en:"Euro"},{ar:"الدرهم",en:"Dirham",correct:true},{ar:"الدولار",en:"Dollar"},{ar:"الريال",en:"Riyal"}], category:"uae", difficulty:"easy"}
   ];
+  var QUESTIONS = ALL_QUESTIONS.slice(); // يتم استبدالها بالفلترة عند بدء المباراة
+  var Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
+
+  // تحويل أسئلة content.json إلى نفس البنية
   function applyContentQuestions(json){
     if (!json || !json.questions || !json.questions.length) return;
     var out = [];
     for (var i=0;i<json.questions.length;i++){
       var q=json.questions[i];
-      // توقع شكل: {id, category, difficulty, ar:{prompt, answers:[{text,correct}]}, en:{prompt, answers:[{text,correct}]}}
       if (!q.ar || !q.en) continue;
       var answers = [];
-      for (var j=0;j<q.ar.answers.length;j++){
-        var a_ar = q.ar.answers[j] || {};
-        var a_en = (q.en.answers[j] || {});
+      var N = Math.max((q.ar.answers||[]).length, (q.en.answers||[]).length);
+      for (var j=0;j<N;j++){
+        var a_ar = (q.ar.answers||[])[j] || {};
+        var a_en = (q.en.answers||[])[j] || {};
         answers.push({ ar:a_ar.text||"", en:a_en.text||"", correct: !!(a_ar.correct||a_en.correct) });
       }
       out.push({
-        id:q.id || (i+1),
-        prompt_ar:q.ar.prompt || "",
-        prompt_en:q.en.prompt || "",
-        answers:answers
+        id: q.id || (i+1),
+        prompt_ar: q.ar.prompt || "",
+        prompt_en: q.en.prompt || "",
+        answers: answers,
+        category: q.category || "general",
+        difficulty: q.difficulty || "easy"
       });
     }
-    if (out.length) QUESTIONS = out;
+    if (out.length) {
+      ALL_QUESTIONS = out;
+      QUESTIONS = ALL_QUESTIONS.slice();
+      Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
+    }
   }
 
+  // ===== content =====
   function loadContent(cb){
     if (state.content){ if(cb) cb(); return; }
     fetch("content.json", {cache:"no-store"})
@@ -172,7 +193,7 @@
       });
   }
 
-  // ===== layout helpers =====
+  // ===== layout =====
   function wrapPhone(inner){ return '<div style="width:min(420px,94vw);margin:12px auto;display:flex;flex-direction:column;gap:12px">'+inner+'</div>'; }
   function screen(title, body){ return '<section class="card" style="width:100%"><div class="h1">'+title+'</div>'+body+'</section>'; }
 
@@ -196,7 +217,17 @@
     ));
   }
 
+  function categories(){ return uniq(ALL_QUESTIONS.map(function(q){return q.category;})); }
+  function difficulties(){ return uniq(ALL_QUESTIONS.map(function(q){return q.difficulty;})); }
+
   function renderModes(){
+    var cats = categories();
+    var diffs = difficulties();
+    var catOpts = '<option value="any" '+(state.filters.category==="any"?'selected':'')+'>'+t("any")+'</option>'+
+      cats.map(function(c){ return '<option value="'+c+'" '+(state.filters.category===c?'selected':'')+'>'+c+'</option>'; }).join("");
+    var diffOpts = '<option value="any" '+(state.filters.difficulty==="any"?'selected':'')+'>'+t("any")+'</option>'+
+      diffs.map(function(d){ return '<option value="'+d+'" '+(state.filters.difficulty===d?'selected':'')+'>'+d+'</option>'; }).join("");
+
     var modes = [
       {id:"quick", name:"Quick Match", playable:true},
       {id:"story", name:"Story Adventure", playable:false},
@@ -210,16 +241,36 @@
              '</strong>'+(m.playable?'<button class="btn cta" data-start-mode="'+m.id+'">'+t("playNow")+'</button>':'<span class="badge">'+t("inProgress")+'</span>')+
              '</div></div>';
     }).join("");
-    return wrapPhone(screen(t("modesTitle"), list));
+
+    return wrapPhone(
+      screen(t("modesTitle"),
+        '<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">'+
+          '<label class="kbd" style="flex:1">'+t("category")+'<select id="selCat" style="width:100%;margin-top:4px">'+catOpts+'</select></label>'+
+          '<label class="kbd" style="flex:1">'+t("difficulty")+'<select id="selDiff" style="width:100%;margin-top:4px">'+diffOpts+'</select></label>'+
+        '</div>'+ list
+      )
+    );
   }
   function wireModes(){
+    var cSel=$("#selCat"); if (cSel) cSel.addEventListener("change", function(e){ state.filters.category=e.target.value||"any"; });
+    var dSel=$("#selDiff"); if (dSel) dSel.addEventListener("change", function(e){ state.filters.difficulty=e.target.value||"any"; });
+
     $all("[data-start-mode]").forEach(function(btn){
       btn.addEventListener("click", function(){
         state.currentMode = btn.getAttribute("data-start-mode");
         state.lobby = {players:2,timeMs:20000,powerups:true};
         state.questionIx=0; state.score=0; state.streak=0; state._awarded=false;
-        // خلط ترتيب الأسئلة عند بداية كل مباراة
+
+        // بناء حوض الأسئلة حسب الفلاتر
+        var pool = ALL_QUESTIONS.filter(function(q){
+          var byCat = (state.filters.category==="any") || (q.category===state.filters.category);
+          var byDiff= (state.filters.difficulty==="any") || (q.difficulty===state.filters.difficulty);
+          return byCat && byDiff;
+        });
+        if (!pool.length) pool = ALL_QUESTIONS.slice();
+        QUESTIONS = pool;
         Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
+
         location.hash="#/lobby";
       });
     });
@@ -228,9 +279,11 @@
   function renderLobby(){
     return wrapPhone(screen(t("lobbyTitle"),
       '<div class="card">'+
-        '<div class="row" style="justify-content:space-between">'+
+        '<div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap">'+
           '<div><span class="badge">'+t("mode")+'</span> <strong>'+(state.currentMode||"—")+'</strong></div>'+
           '<div class="badge">'+t("players")+': '+state.lobby.players+'</div>'+
+          '<div class="badge">'+t("category")+': '+(state.filters.category||"any")+'</div>'+
+          '<div class="badge">'+t("difficulty")+': '+(state.filters.difficulty||"any")+'</div>'+
         '</div>'+
         '<div class="row" style="margin-top:8px;gap:8px">'+
           '<label class="kbd" style="flex:1">'+t("players")+
@@ -269,26 +322,40 @@
     var bsnd=$("#btnSound"); if (bsnd) bsnd.addEventListener("click", function(){ settings.sound=!settings.sound; saveSettings(); render(); });
   }
 
-  var Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
-
+  // ===== Question screen =====
   function renderQuestion(){
     if (state._remaining !== state.lobby.timeMs) state._remaining = state.lobby.timeMs;
+    state._frozen=false; state._shieldActive=false; // reset لكل سؤال جديد
+
     var q = QUESTIONS[ Q_ORDER[state.questionIx] ];
     var prompt = (lang==="ar")? q.prompt_ar : q.prompt_en;
     var opts = q.answers.map(function(a,i){ return {txt:(lang==="ar"?a.ar:a.en), ok:!!a.correct, i:i}; });
     opts = shuffle(opts);
+
+    var powerRow = '';
+    if (state.lobby.powerups){
+      powerRow =
+        '<div class="row" style="gap:6px;margin-bottom:6px;flex-wrap:wrap">'+
+          '<button class="btn" id="pHint">💡 '+t("hint")+' (-'+COSTS.hint+' '+t("coins")+')</button>'+
+          '<button class="btn" id="pFreeze">⏸ '+t("freeze")+' (-'+COSTS.freeze+' '+t("coins")+')</button>'+
+          '<button class="btn" id="pShield">🛡 '+t("shield")+' (-'+COSTS.shield+' '+t("coins")+')</button>'+
+        '</div>';
+    }
+
     return wrapPhone(screen(t("questionTitle"),
       '<div class="row" style="justify-content:space-between;margin-bottom:8px">'+
         '<span class="kbd">'+t("score")+': '+state.score+'</span>'+
         '<span class="kbd">'+t("streak")+': '+state.streak+'</span>'+
       '</div>'+
+      powerRow+
       '<div class="h2" style="margin-bottom:8px">'+prompt+'</div>'+
       '<div style="display:flex;flex-direction:column;gap:8px">'+
         opts.map(function(o){ return '<button class="opt btn" style="width:100%;text-align:start" data-ix="'+o.i+'" data-ok="'+(o.ok?'1':'0')+'">'+o.txt+'</button>'; }).join("")+
       '</div>'+
-      '<div class="meta" style="margin-top:10px">'+
+      '<div class="meta" style="margin-top:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
         '<span class="badge">Round '+(state.questionIx+1)+'/'+QUESTIONS.length+'</span>'+
         '<span class="badge" id="timer">'+mmss(state._remaining)+'</span>'+
+        (state.lobby.powerups?'<span class="badge" id="pfreeze" style="display:none">⏸</span><span class="badge" id="pshield" style="display:none">🛡</span>':'')+
       '</div>'+
       '<div class="row" style="margin-top:8px;justify-content:space-between">'+
         '<a class="btn" href="#/lobby">⟵ '+t("lobby")+'</a>'+
@@ -302,11 +369,14 @@
     var timerEl = $("#timer");
     state._timerId = setInterval(function(){
       if (state._qAdvanced) { clearInterval(state._timerId); return; }
+      if (state._frozen){ if (timerEl) timerEl.textContent = mmss(state._remaining); return; }
       state._remaining -= 100;
       if (timerEl) timerEl.textContent = mmss(state._remaining);
       if (state._remaining <= 0){
         clearInterval(state._timerId);
-        state.streak = 0; state._qAdvanced = true;
+        state.streak = state._shieldActive ? state.streak : 0; // shield يمنع كسر السلسلة
+        state._shieldActive = false;
+        state._qAdvanced = true;
         setTimeout(nextStep, 10);
       }
     }, 100);
@@ -320,8 +390,47 @@
       location.hash = "#/results";
     }
   }
+
+  function useCoins(amount){
+    if (state.wallet.coins < amount){ alert(t("notEnough")); return false; }
+    state.wallet.coins -= amount; saveWallet(); return true;
+  }
+
+  function wirePowerups(){
+    var freezeBadge = $("#pfreeze");
+    var shieldBadge = $("#pshield");
+
+    var btnH=$("#pHint");
+    if (btnH) btnH.addEventListener("click", function(){
+      if (!useCoins(COSTS.hint)) return;
+      var wrong = $all(".opt").filter(function(b){ return b.getAttribute("data-ok")==="0" && !b.disabled && b.style.display!=="none"; });
+      if (!wrong.length) return;
+      var pick = wrong[Math.floor(Math.random()*wrong.length)];
+      pick.disabled = true;
+      pick.style.opacity = "0.5";
+    });
+
+    var btnF=$("#pFreeze");
+    if (btnF) btnF.addEventListener("click", function(){
+      if (state._frozen) return; // نشط بالفعل
+      if (!useCoins(COSTS.freeze)) return;
+      state._frozen = true;
+      if (freezeBadge) freezeBadge.style.display = "inline-block";
+      setTimeout(function(){ state._frozen=false; if (freezeBadge) freezeBadge.style.display="none"; }, 5000);
+    });
+
+    var btnS=$("#pShield");
+    if (btnS) btnS.addEventListener("click", function(){
+      if (state._shieldActive) return; // موجود
+      if (!useCoins(COSTS.shield)) return;
+      state._shieldActive = true;
+      if (shieldBadge) shieldBadge.style.display = "inline-block";
+    });
+  }
+
   function wireQuestion(){
-    state._qAdvanced=false; startTimer();
+    state._qAdvanced=false; startTimer(); wirePowerups();
+
     $all(".opt").forEach(function(btn){
       btn.addEventListener("click", function(){
         if (state._qAdvanced) return;
@@ -330,20 +439,27 @@
         btn.classList.add(ok?"correct":"wrong");
         var nb=$("#nextBtn"); if (nb) nb.textContent = ok ? t("correct") : t("wrong");
         state._qAdvanced=true;
+
         if (ok){
           snd("ok");
           var bonus = Math.ceil(state._remaining/1000)*5;
           state.score += 100 + bonus; state.streak += 1;
         } else {
           snd("bad");
-          state.streak = 0;
+          if (!state._shieldActive) state.streak = 0; // shield يمنع كسر السلسلة
+          state._shieldActive = false; // يُستهلك عند أول خطأ
         }
         setTimeout(nextStep, 700);
       });
     });
-    var nb=$("#nextBtn"); if (nb) nb.addEventListener("click", function(){ if(!state._qAdvanced){state.streak=0;state._qAdvanced=true;} nextStep(); });
+    var nb=$("#nextBtn");
+    if (nb) nb.addEventListener("click", function(){
+      if(!state._qAdvanced){ if (!state._shieldActive) state.streak=0; state._shieldActive=false; state._qAdvanced=true; }
+      nextStep();
+    });
   }
 
+  // ===== Results =====
   function renderResults(){
     var coinsReward = Math.max(0, Math.round(state.score*0.10));
     return wrapPhone(screen(t("resultsTitle"),
@@ -367,6 +483,7 @@
     });
   }
 
+  // ===== Avatar/Store (كما في v17) =====
   function previewSVG(){
     var eq=state.equipped;
     var cape=eq.cape?'<path d="M30 110 L128 210 L226 110 Q200 120 128 120 Q56 120 30 110" fill="#8b5cf6" opacity="0.55"/>':'';
@@ -417,7 +534,7 @@
       '</div>'+
       outfits.map(item).join("")+
       '<div class="row" style="margin-top:12px">'+
-        '<div class="kbd" style="flex:1;text-align:center">'+t("coins")+': '+state.wallet.coins+'</div>'+
+        '<div class="kbd" style="flex:1;text-align:center)">'+t("coins")+': '+state.wallet.coins+'</div>'+
         '<div class="kbd" style="flex:1;text-align:center)">'+t("gems")+': '+state.wallet.gems+'</div>'+
       '</div>'
     ));
@@ -445,7 +562,7 @@
     });
   }
 
-  // ===== Store list page =====
+  // ===== Store page =====
   function renderStore(){
     var c = state.content;
     var owned = new Set(state.owned);
@@ -510,7 +627,7 @@
     });
   }
 
-  // ===== mark active tab (optional) =====
+  // ===== mark active tab =====
   function markActiveTab(){
     var r = state.route || "splash";
     $all("header .tabs a").forEach(function(a){
@@ -519,7 +636,7 @@
     });
   }
 
-  // ===== render (mount + wire) =====
+  // ===== render =====
   function render(){
     var app = getApp();
     loadContent(function(){
@@ -539,7 +656,6 @@
       app.innerHTML = html;
       if (typeof markActiveTab === "function") markActiveTab();
 
-      // اربط الأحداث حسب الصفحة
       switch(state.route){
         case "home":          $("#btnReset") && $("#btnReset").addEventListener("click", function(){ localStorage.clear(); location.reload(); }); break;
         case "modes":         wireModes();         break;
