@@ -200,42 +200,41 @@
       });
     });
   }
-
-  function renderLobby(){
-    return wrapPhone(screen(t("lobbyTitle"),
-      '<div class="card">'+
-        '<div class="row" style="justify-content:space-between">'+
-          '<div><span class="badge">'+t("mode")+'</span> <strong>'+(state.currentMode||"—")+'</strong></div>'+
-          '<div class="badge">'+t("players")+': '+state.lobby.players+'</div>'+
-        '</div>'+
-        '<div class="row" style="margin-top:8px;gap:8px">'+
-          '<label class="kbd" style="flex:1">'+t("players")+
-            '<select id="selPlayers" style="width:100%;margin-top:4px">'+
-              '<option value="2" '+(state.lobby.players===2?'selected':'')+'>2</option>'+
-              '<option value="3" '+(state.lobby.players===3?'selected':'')+'>3</option>'+
-              '<option value="4" '+(state.lobby.players===4?'selected':'')+'>4</option>'+
-            '</select>'+
-          '</label>'+
-          <label class="kbd" style="flex:1">'+t("timePerQ")+
-            '<select id="selTime" style="width:100%;margin-top:4px">'+
-              '<option value="10000" '+(state.lobby.timeMs===10000?'selected':'')+'>10s</option>'+
-              '<option value="20000" '+(state.lobby.timeMs===20000?'selected':'')+'>20s</option>'+
-              '<option value="30000" '+(state.lobby.timeMs===30000?'selected':'')+'>30s</option>'+
-            '</select>'+
-          '</label>'+
-        '</div>'+
-        '<div class="row" style="margin-top:8px;justify-content:space-between">'+
-          '<div class="kbd">'+t("powerups")+': <button id="btnPower" class="btn" style="margin-inline-start:6px">'+(state.lobby.powerups?t("on"):t("off"))+'</button></div>'+
-          '<a class="btn" href="#/modes">'+t("modesTitle")+'</a>'+
-        '</div>'+
+function renderLobby(){
+  return wrapPhone(screen(t("lobbyTitle"),
+    '<div class="card">'+
+      '<div class="row" style="justify-content:space-between">'+
+        '<div><span class="badge">'+t("mode")+'</span> <strong>'+(state.currentMode||"—")+'</strong></div>'+
+        '<div class="badge">'+t("players")+': '+state.lobby.players+'</div>'+
       '</div>'+
-      '<div class="card"><div class="h2">'+t("players")+'</div><div class="row" style="gap:8px;flex-wrap:wrap">'+
-        '<span class="badge">'+t("you")+'</span>'+
-        Array(state.lobby.players-1).fill(0).map(function(_,i){return '<span class="badge">Friend#'+(200+i)+'</span>';}).join('')+
-      '</div></div>'+
-      '<button class="btn cta" id="btnStart" style="width:100%">'+t("startMatch")+'</button>'
-    ));
-  }
+      '<div class="row" style="margin-top:8px;gap:8px">'+
+        '<label class="kbd" style="flex:1">'+t("players")+
+          '<select id="selPlayers" style="width:100%;margin-top:4px">'+
+            '<option value="2" '+(state.lobby.players===2?'selected':'')+'>2</option>'+
+            '<option value="3" '+(state.lobby.players===3?'selected':'')+'>3</option>'+
+            '<option value="4" '+(state.lobby.players===4?'selected':'')+'>4</option>'+
+          '</select>'+
+        '</label>'+
+        '<label class="kbd" style="flex:1">'+t("timePerQ")+
+          '<select id="selTime" style="width:100%;margin-top:4px">'+
+            '<option value="10000" '+(state.lobby.timeMs===10000?'selected':'')+'>10s</option>'+
+            '<option value="20000" '+(state.lobby.timeMs===20000?'selected':'')+'>20s</option>'+
+            '<option value="30000" '+(state.lobby.timeMs===30000?'selected':'')+'>30s</option>'+
+          '</select>'+
+        '</label>'+
+      '</div>'+
+      '<div class="row" style="margin-top:8px;justify-content:space-between">'+
+        '<div class="kbd">'+t("powerups")+': <button id="btnPower" class="btn" style="margin-inline-start:6px">'+(state.lobby.powerups?t("on"):t("off"))+'</button></div>'+
+        '<a class="btn" href="#/modes">'+t("modesTitle")+'</a>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card"><div class="h2">'+t("players")+'</div><div class="row" style="gap:8px;flex-wrap:wrap">'+
+      '<span class="badge">'+t("you")+'</span>'+
+      Array(state.lobby.players-1).fill(0).map(function(_,i){return '<span class="badge">Friend#'+(200+i)+'</span>';}).join('')+
+    '</div></div>'+
+    '<button class="btn cta" id="btnStart" style="width:100%">'+t("startMatch")+'</button>'
+  ));
+}
   function wireLobby(){
     var sp=$("#selPlayers"); if(sp) sp.addEventListener("change", function(e){ state.lobby.players=parseInt(e.target.value,10); render(); });
     var st=$("#selTime");    if(st) st.addEventListener("change",  function(e){ state.lobby.timeMs=parseInt(e.target.value,10); });
