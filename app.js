@@ -68,6 +68,14 @@
     return app;
   }
 
+  function shuffle(a){
+  for (var i=a.length-1; i>0; i--){
+    var j = Math.floor(Math.random()*(i+1));
+    var tmp=a[i]; a[i]=a[j]; a[j]=tmp;
+  }
+  return a;
+}
+
   // ===== route & lang/theme =====
   window.addEventListener("hashchange", function(){ state.route = location.hash.replace("#/","") || "splash"; render(); });
 
@@ -213,13 +221,18 @@
     {id:6,prompt_ar:"عملة الإمارات العربية المتحدة؟",prompt_en:"The currency of the UAE?",
       answers:[{ar:"اليورو",en:"Euro"},{ar:"الدرهم",en:"Dirham",correct:true},{ar:"الدولار",en:"Dollar"},{ar:"الريال",en:"Riyal"}]}
   ];
+
+  // ترتيب عشوائي لفه الأسئلة الحالية
+ var Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
+
   function mmss(ms){ var s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2); }
 
   function renderQuestion(){
     if (state._remaining !== state.lobby.timeMs) state._remaining = state.lobby.timeMs;
-    var q = QUESTIONS[state.questionIx];
     var prompt = (lang==="ar")? q.prompt_ar : q.prompt_en;
-    var opts = q.answers.map(function(a,i){ return {txt:(lang==="ar"?a.ar:a.en), ok:!!a.correct, i:i}; });
+    var q = QUESTIONS[ Q_ORDER[state.questionIx] ];
+var opts = q.answers.map(function(a,i){ return {txt:(lang==="ar"?a.ar:a.en), ok:!!a.correct, i:i}; });
+opts = shuffle(opts); // ترتيب عشوائي للأزرار كل مرة
     return wrapPhone(screen(t("questionTitle"),
       '<div class="row" style="justify-content:space-between;margin-bottom:8px">'+
         '<span class="kbd">'+t("score")+': '+state.score+'</span>'+
@@ -255,15 +268,14 @@
     }, 100);
   }
   function nextStep(){
-    if (state.questionIx < QUESTIONS.length - 1) {
-      state.questionIx++;
-      // نفس المسار (#/question) → نعيد الرسم يدويًا
-      if (state.route === "question") render();
-      else location.hash = "#/question";
-    } else {
-      location.hash = "#/results";
-    }
+  if (state.questionIx < Q_ORDER.length - 1) {
+    state.questionIx++;
+    if (state.route === "question") render();
+    else location.hash = "#/question";
+  } else {
+    location.hash = "#/results";
   }
+}
   function wireQuestion(){
     state._qAdvanced=false; startTimer();
     $all(".opt").forEach(function(btn){
@@ -303,6 +315,7 @@
       if (!state._awarded){ state.wallet.coins += coinsReward; saveWallet(); state._awarded = true; }
       state.questionIx=0; state.score=0; state.streak=0; state._qAdvanced=false;
       location.hash="#/question";
+      Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
     });
   }
 
@@ -418,9 +431,18 @@
       if (state.route==="question") wireQuestion();
       if (state.route==="results") wireResults();
       if (state.route==="customization") wireCustomization();
+   app.innerHTML = html;
+markActiveTab();
     });
   }
-
+function markActiveTab(){
+  var r = state.route || "splash";
+  $all("header .tabs a").forEach(function(a){
+    var isActive = (a.getAttribute("href") === "#/"+r);
+    if (isActive) a.classList.add("active");
+    else a.classList.remove("active");
+  });
+}
   // ===== boot =====
   function boot(){
     var bl=$("#btnLang");  if (bl) bl.addEventListener("click", function(){ setLang(lang==="ar"?"en":"ar"); });
