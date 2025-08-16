@@ -1,5 +1,5 @@
 /* Roundo v16 — ES5, content.json-driven questions + lobby filters (rounds/categories/difficulty)
-   + new trophy avatar SVG, robust routing & event wiring */
+   + new trophy avatar PNG base, robust routing & event wiring */
 (function(){
   'use strict';
 
@@ -97,10 +97,8 @@
         prompt_en:(q.en&&q.en.prompt)||q.prompt_en||"",
         answers:[]
       };
-      // answers (ar/en arrays with {text,correct})
       var aa=(q.ar&&q.ar.answers)||[];
       var ae=(q.en&&q.en.answers)||[];
-      // align by index
       var m=Math.max(aa.length,ae.length);
       for(var k=0;k<m;k++){
         var a_ar=aa[k]||{};
@@ -208,13 +206,10 @@
   }
 
   function renderLobby(){
-    // dynamic cats/diffs from content
     var cats = unique(Q_ALL,"category");
     var diffs = unique(Q_ALL,"difficulty");
-    // labels (localized)
     var catsLabels = [t("all")].concat(cats);
     var diffsLabels = [t("all"), t("easy"), t("medium"), t("hard")];
-    // map to keys
     var diffKeys = ["all","easy","medium","hard"];
 
     return wrapPhone(screen(t("lobbyTitle"),
@@ -224,7 +219,6 @@
           '<div class="badge">'+t("players")+': '+state.lobby.players+'</div>'+
         '</div>'+
 
-        // players & time
         '<div class="row" style="margin-top:8px;gap:8px">'+
           '<label class="kbd" style="flex:1">'+t("players")+
             '<select id="selPlayers" style="width:100%;margin-top:4px">'+
@@ -240,7 +234,6 @@
             '</select></label>'+
         '</div>'+
 
-        // rounds
         '<div class="row" style="margin-top:8px;gap:8px">'+
           '<label class="kbd" style="flex:1">'+t("rounds")+
             '<select id="selRounds" style="width:100%;margin-top:4px">'+
@@ -251,7 +244,6 @@
           '</div>'+
         '</div>'+
 
-        // categories
         '<div class="card" style="margin-top:10px">'+
           '<div class="h2">'+t("categories")+'</div>'+
           '<div class="row" style="gap:6px;flex-wrap:wrap">'+
@@ -260,15 +252,10 @@
           '</div>'+
         '</div>'+
 
-        // difficulty
         '<div class="card" style="margin-top:10px">'+
           '<div class="h2">'+t("difficulty")+'</div>'+
           '<div class="row" style="gap:6px;flex-wrap:wrap">'+
-            ['easy','medium','hard'].map(function(d){
-              var active=(state.lobby.diffs.length===0 && d==='easy' && false) ? true : (state.lobby.diffs.indexOf(d)>=0);
-              // show 'All' button too
-              return '';
-            }).join('')+
+            ['easy','medium','hard'].map(function(d){ return ''; }).join('')+
             '<button class="btn '+(state.lobby.diffs.length===0?'cta':'')+'" data-diff-all="1">'+t("all")+'</button>'+
             ['easy','medium','hard'].map(function(d){
               var active=state.lobby.diffs.indexOf(d)>=0;
@@ -292,7 +279,6 @@
     var sr=$("#selRounds"); if(sr) sr.addEventListener("change",function(e){state.lobby.rounds=parseInt(e.target.value,10);});
     var bp=$("#btnPower"); if(bp) bp.addEventListener("click",function(){state.lobby.powerups=!state.lobby.powerups; render();});
 
-    // categories
     $all("[data-cat]").forEach(function(btn){
       btn.addEventListener("click",function(){
         var c=btn.getAttribute("data-cat");
@@ -303,7 +289,6 @@
     });
     var ca=$("[data-cat-all]"); if(ca) ca.addEventListener("click",function(){state.lobby.cats=[]; render();});
 
-    // difficulty
     $all("[data-diff]").forEach(function(btn){
       btn.addEventListener("click",function(){
         var d=btn.getAttribute("data-diff");
@@ -314,19 +299,15 @@
     });
     var da=$("[data-diff-all]"); if(da) da.addEventListener("click",function(){state.lobby.diffs=[]; render();});
 
-    // start
     var bs=$("#btnStart"); if(bs) bs.addEventListener("click",startMatch);
   }
 
   function startMatch(){
-    // filters
     var cats = state.lobby.cats.length? state.lobby.cats : unique(Q_ALL,"category");
     var diffs = state.lobby.diffs.length? state.lobby.diffs : unique(Q_ALL,"difficulty");
-    // pool
     var pool=Q_ALL.filter(function(q){return cats.indexOf(q.category)>=0 && diffs.indexOf(q.difficulty)>=0;});
-    if(pool.length===0) pool=Q_ALL.slice(); // أمان
+    if(pool.length===0) pool=Q_ALL.slice();
     shuffle(pool);
-    // pick rounds
     var n=Math.max(1, Math.min(state.lobby.rounds, pool.length));
     Q_ACTIVE = pool.slice(0,n);
     Q_ORDER = []; for(var i=0;i<Q_ACTIVE.length;i++) Q_ORDER.push(i);
@@ -417,49 +398,33 @@
       var coinsReward=Math.max(0,Math.round(state.score*0.10));
       if(!state._awarded){state.wallet.coins+=coinsReward;saveWallet();state._awarded=true;}
       state.questionIx=0;state.score=0;state.streak=0;state._qAdvanced=false;
-      // إعادة تشكيل مجموعة جديدة بنفس الفلاتر
       startMatch();
     });
   }
 
-  // ===== Avatar (new trophy SVG) =====
+  // ===== Avatar (PNG base + SVG accessories) =====
   function trophySVG(){
-    var eq=state.equipped||{};
-    var headband=eq.headband?'<rect x="78" y="70" width="100" height="12" rx="6" fill="#e11d48"/>' : '';
-    var visor=eq.visor?'<rect x="88" y="112" width="80" height="10" rx="5" fill="#7c3aed" opacity="0.9"/>' : '';
-    var scarf=eq.scarf?'<path d="M82 152 Q128 168 174 152 L174 165 Q128 185 82 165 Z" fill="#14b8a6"/>' : '';
-    var cape=eq.cape?'<path d="M28 110 L128 208 L228 110 Q200 122 128 122 Q56 122 28 110" fill="#8b5cf6" opacity="0.5"/>' : '';
-    var charm=eq.charm?'<circle cx="128" cy="182" r="10" fill="#ffd166" stroke="#a66f00" stroke-width="3"/>' : '';
+    var eq = state.equipped || {};
+
+    function L(svg){
+      return '<svg viewBox="0 0 100 100" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">'+
+             svg+'</svg>';
+    }
+
+    var cape     = eq.cape     ? L('<path d="M10 60 L50 95 L90 60 Q75 65 50 65 Q25 65 10 60" fill="#8b5cf6" opacity="0.55"></path>') : '';
+    var headband = eq.headband ? L('<rect x="22" y="28" width="56" height="6" rx="3" fill="#e11d48"></rect>') : '';
+    var visor    = eq.visor    ? L('<rect x="28" y="44" width="44" height="6" rx="3" fill="#7c3aed" opacity="0.9"></rect>') : '';
+    var scarf    = eq.scarf    ? L('<path d="M28 62 Q50 68 72 62 L72 68 Q50 76 28 68 Z" fill="#14b8a6"></path>') : '';
+    var charm    = eq.charm    ? L('<circle cx="50" cy="74" r="4.5" fill="#ffd166" stroke="#a66f00" stroke-width="1.5"></circle>') : '';
+
     return ''+
-    '<svg width="130" height="130" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">'+
-      '<defs>'+
-        '<linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#ffb300"/></linearGradient>'+
-        '<linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd166"/><stop offset="1" stop-color="#ffb000"/></linearGradient>'+
-      '</defs>'+
-      cape+
-      // handles
-      '<path d="M46 90 q-34 8 -34 36 q0 28 34 36" fill="none" stroke="#ffb000" stroke-width="12" stroke-linecap="round"/>'+
-      '<path d="M210 90 q34 8 34 36 q0 28 -34 36" fill="none" stroke="#ffb000" stroke-width="12" stroke-linecap="round"/>'+
-      // cup
-      '<path d="M56 86 h144 l-18 76 H74 Z" fill="url(#g)" stroke="#a66f00" stroke-width="8" />'+
-      // face
-      headband+
-      '<ellipse cx="102" cy="124" rx="16" ry="12" fill="#fff" stroke="#2A2F45" stroke-width="3"/>'+
-      '<ellipse cx="154" cy="124" rx="16" ry="12" fill="#fff" stroke="#2A2F45" stroke-width="3"/>'+
-      '<circle cx="102" cy="124" r="6" fill="#2A2F45"/>'+
-      '<circle cx="154" cy="124" r="6" fill="#2A2F45"/>'+
-      visor+
-      '<path d="M100 146 q28 18 56 0" fill="none" stroke="#2A2F45" stroke-width="5" stroke-linecap="round"/>'+
-      // gloves
-      '<circle cx="60" cy="130" r="12" fill="#fff" stroke="#cfcfcf"/>'+
-      '<circle cx="196" cy="130" r="12" fill="#fff" stroke="#cfcfcf"/>'+
-      // stem & base
-      scarf+
-      '<rect x="96" y="160" width="64" height="36" rx="6" fill="url(#g2)" stroke="#a66f00" stroke-width="6"/>'+
-      charm+
-      '<rect x="64" y="200" width="128" height="28" rx="10" fill="url(#g2)" stroke="#a66f00" stroke-width="6"/>'+
-    '</svg>';
+      '<div style="position:relative;width:min(320px,72vw);aspect-ratio:1/1;margin:0 auto">'+
+        cape+
+        '<img src="assets/IMG_1972.png" alt="mascot" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain">'+
+        headband+visor+scarf+charm+
+      '</div>';
   }
+
   function renderCustomization(){
     var c=state.content; var ownedMap={}; state.owned.forEach(function(id){ownedMap[id]=1;});
     var char=c.characters[0]||{name_ar:"كأس",name_en:"Trophy",default:{colorway:"gold"}};
@@ -587,7 +552,6 @@
       app.innerHTML=html;
       if(typeof markActiveTab==="function") markActiveTab();
 
-      // page-specific wiring
       switch(state.route){
         case "modes": wireModes(); break;
         case "lobby": wireLobby(); break;
