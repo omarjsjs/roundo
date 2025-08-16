@@ -1,4 +1,4 @@
-/* Roundo v19 – Hint hides whole option + content.json cache-bust + categories/difficulty ready */
+/* Roundo v20 – Rounds selector + better "All" mixing + same powerups + cache-busted content */
 (function () {
   'use strict';
 
@@ -17,7 +17,8 @@
         mode:"النمط", you:"أنت",
         category:"التصنيف", difficulty:"الصعوبة", any:"الكل",
         hint:"Hint", freeze:"Freeze", shield:"Shield",
-        sound:"الصوت", reset:"إعادة ضبط", confirmBuy:"تأكيد الشراء", needOwn:"اشتري العنصر أولًا"},
+        sound:"الصوت", reset:"إعادة ضبط", confirmBuy:"تأكيد الشراء", needOwn:"اشتري العنصر أولًا",
+        rounds:"الجولات"},
     en:{app:"Roundo",badge:"Prototype",home:"Home",modes:"Game Modes",lobby:"Lobby",store:"Store",
         splashTitle:"Splash",quickPlay:"Quick Play",playNow:"Play Now",
         modesTitle:"Game Modes",lobbyTitle:"Lobby",storeTitle:"Store",avatarTitle:"My Avatar",
@@ -31,7 +32,8 @@
         mode:"Mode", you:"You",
         category:"Category", difficulty:"Difficulty", any:"Any",
         hint:"Hint", freeze:"Freeze", shield:"Shield",
-        sound:"Sound", reset:"Reset", confirmBuy:"Confirm purchase", needOwn:"Please buy this first"}
+        sound:"Sound", reset:"Reset", confirmBuy:"Confirm purchase", needOwn:"Please buy this first",
+        rounds:"Rounds"}
   };
 
   // ===== helpers =====
@@ -59,6 +61,7 @@
     content: null,
     currentMode: null,
     filters:{ category:"any", difficulty:"any" },
+    rounds: 6, // ← جديد: عدد الجولات
     questionIx: 0, score: 0, streak: 0, _awarded:false,
     _qAdvanced:false, _timerId:null, _remaining:20000,
     _frozen:false, _shieldActive:false,
@@ -118,7 +121,7 @@
     else document.body.classList.remove("theme-light");
   }
 
-  // ===== Questions data =====
+  // ===== Questions data (fallback) =====
   var ALL_QUESTIONS = [
     {id:1,prompt_ar:"ما عاصمة فرنسا؟",prompt_en:"What is the capital of France?",
       answers:[{ar:"باريس",en:"Paris",correct:true},{ar:"روما",en:"Rome"},{ar:"مدريد",en:"Madrid"},{ar:"برلين",en:"Berlin"}], category:"general", difficulty:"easy"},
@@ -167,7 +170,7 @@
     }
   }
 
-  // ===== content (مع كسر كاش حسب v= في URL) =====
+  // ===== content (cache-bust via ?v=) =====
   function loadContent(cb){
     if (state.content){ if(cb) cb(); return; }
     var v = (new URLSearchParams(location.search)).get("v") || Date.now();
@@ -179,18 +182,7 @@
         if(cb) cb();
       })
       .catch(function(){
-        state.content = {
-          characters:[{name_ar:"تروفي",name_en:"Trophy",default:{colorway:"Gold"}}],
-          cosmetics:[
-            {id:"headband_red",slot:"headband",price:{coins:200}},
-            {id:"scarf_teal",slot:"scarf",price:{coins:180}},
-            {id:"visor_purple",slot:"visor",price:{coins:150}},
-            {id:"cape_violet",slot:"cape",price:{gems:5}},
-            {id:"charm_sun",slot:"charm",price:null}
-          ],
-          store:{daily:["headband_red","scarf_teal","visor_purple"],weekly:["cape_violet","charm_sun"]},
-          questions:[]
-        };
+        state.content = {characters:[{name_ar:"تروفي",name_en:"Trophy",default:{colorway:"Gold"}}],cosmetics:[],store:{daily:[],weekly:[]},questions:[]};
         if(cb) cb();
       });
   }
@@ -230,6 +222,10 @@
     var diffOpts = '<option value="any" '+(state.filters.difficulty==="any"?'selected':'')+'>'+t("any")+'</option>'+
       diffs.map(function(d){ return '<option value="'+d+'" '+(state.filters.difficulty===d?'selected':'')+'>'+d+'</option>'; }).join("");
 
+    var roundsOpts = [5,6,8,10,12,15].map(function(n){
+      return '<option value="'+n+'" '+(state.rounds===n?'selected':'')+'>'+n+'</option>';
+    }).join("");
+
     var modes = [
       {id:"quick", name:"Quick Match", playable:true},
       {id:"story", name:"Story Adventure", playable:false},
@@ -249,6 +245,7 @@
         '<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">'+
           '<label class="kbd" style="flex:1">'+t("category")+'<select id="selCat" style="width:100%;margin-top:4px">'+catOpts+'</select></label>'+
           '<label class="kbd" style="flex:1">'+t("difficulty")+'<select id="selDiff" style="width:100%;margin-top:4px">'+diffOpts+'</select></label>'+
+          '<label class="kbd" style="flex:1">'+t("rounds")+'<select id="selRounds" style="width:100%;margin-top:4px">'+roundsOpts+'</select></label>'+
         '</div>'+ list
       )
     );
@@ -256,6 +253,7 @@
   function wireModes(){
     var cSel=$("#selCat"); if (cSel) cSel.addEventListener("change", function(e){ state.filters.category=e.target.value||"any"; });
     var dSel=$("#selDiff"); if (dSel) dSel.addEventListener("change", function(e){ state.filters.difficulty=e.target.value||"any"; });
+    var rSel=$("#selRounds"); if (rSel) rSel.addEventListener("change", function(e){ state.rounds = parseInt(e.target.value,10)||6; });
 
     $all("[data-start-mode]").forEach(function(btn){
       btn.addEventListener("click", function(){
@@ -270,7 +268,36 @@
           return byCat && byDiff;
         });
         if (!pool.length) pool = ALL_QUESTIONS.slice();
-        QUESTIONS = pool;
+
+        // عدد الجولات
+        var n = Math.max(1, Math.min(state.rounds, pool.length));
+        var picked = [];
+
+        // إن كانت "الكل" للاثنين، ابنِ توليفة منوعة (روتيشن على التصنيفات)
+        if (state.filters.category==="any" && state.filters.difficulty==="any"){
+          var byCat = {};
+          for (var i=0;i<pool.length;i++){
+            var c = pool[i].category || "general";
+            (byCat[c]||(byCat[c]=[])).push(pool[i]);
+          }
+          Object.keys(byCat).forEach(function(k){ byCat[k] = shuffle(byCat[k]); });
+          var cats = shuffle(Object.keys(byCat));
+          while (picked.length < n && cats.length){
+            for (var ci=0; ci<cats.length && picked.length<n; ci++){
+              var cc = cats[ci], arr = byCat[cc];
+              if (arr.length) picked.push(arr.pop());
+            }
+            cats = cats.filter(function(c){ return byCat[c].length; });
+          }
+          if (picked.length < n){
+            var rest = shuffle(pool.filter(function(q){ return picked.indexOf(q)===-1; }));
+            Array.prototype.push.apply(picked, rest.slice(0, n-picked.length));
+          }
+        } else {
+          picked = shuffle(pool).slice(0, n);
+        }
+
+        QUESTIONS = picked;
         Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
 
         location.hash="#/lobby";
@@ -286,9 +313,10 @@
           '<div class="badge">'+t("players")+': '+state.lobby.players+'</div>'+
           '<div class="badge">'+t("category")+': '+(state.filters.category||"any")+'</div>'+
           '<div class="badge">'+t("difficulty")+': '+(state.filters.difficulty||"any")+'</div>'+
+          '<div class="badge">'+t("rounds")+': '+state.rounds+'</div>'+
         '</div>'+
         '<div class="row" style="margin-top:8px;gap:8px">'+
-          '<label class="kbd" style="flex:1">'+t("players")+
+          '<label class="kbd" style="flex:1)">'+t("players")+
             '<select id="selPlayers" style="width:100%;margin-top:4px">'+
               '<option value="2" '+(state.lobby.players===2?'selected':'')+'>2</option>'+
               '<option value="3" '+(state.lobby.players===3?'selected':'')+'>3</option>'+
@@ -304,8 +332,8 @@
           '</label>'+
         '</div>'+
         '<div class="row" style="margin-top:8px;justify-content:space-between;gap:8px;flex-wrap:wrap">'+
-          '<div class="kbd">'+t("powerups")+': <button id="btnPower" class="btn" style="margin-inline-start:6px">'+(state.lobby.powerups?t("on"):t("off"))+'</button></div>'+
-          '<div class="kbd">'+t("sound")+': <button id="btnSound" class="btn" style="margin-inline-start:6px">'+(settings.sound?t("on"):t("off"))+'</button></div>'+
+          '<div class="kbd">'+t("powerups")+': <button id="btnPower" class="btn" style="margin-inline-start:6px)">'+(state.lobby.powerups?t("on"):t("off"))+'</button></div>'+
+          '<div class="kbd">'+t("sound")+': <button id="btnSound" class="btn" style="margin-inline-start:6px)">'+(settings.sound?t("on"):t("off"))+'</button></div>'+
           '<a class="btn" href="#/modes">'+t("modesTitle")+'</a>'+
         '</div>'+
       '</div>'+
@@ -327,7 +355,7 @@
   // ===== Question screen =====
   function renderQuestion(){
     if (state._remaining !== state.lobby.timeMs) state._remaining = state.lobby.timeMs;
-    state._frozen=false; state._shieldActive=false; // reset لكل سؤال جديد
+    state._frozen=false; state._shieldActive=false;
 
     var q = QUESTIONS[ Q_ORDER[state.questionIx] ];
     var prompt = (lang==="ar")? q.prompt_ar : q.prompt_en;
@@ -338,9 +366,9 @@
     if (state.lobby.powerups){
       powerRow =
         '<div class="row" style="gap:6px;margin-bottom:6px;flex-wrap:wrap">'+
-          '<button class="btn" id="pHint">💡 '+t("hint")+' (-'+COSTS.hint+' '+t("coins")+')</button>'+
-          '<button class="btn" id="pFreeze">⏸ '+t("freeze")+' (-'+COSTS.freeze+' '+t("coins")+')</button>'+
-          '<button class="btn" id="pShield">🛡 '+t("shield")+' (-'+COSTS.shield+' '+t("coins")+')</button>'+
+          '<button class="btn" id="pHint">💡 '+t("hint")+' (-30 '+t("coins")+')</button>'+
+          '<button class="btn" id="pFreeze">⏸ '+t("freeze")+' (-40 '+t("coins")+')</button>'+
+          '<button class="btn" id="pShield">🛡 '+t("shield")+' (-50 '+t("coins")+')</button>'+
         '</div>';
     }
 
@@ -376,7 +404,7 @@
       if (timerEl) timerEl.textContent = mmss(state._remaining);
       if (state._remaining <= 0){
         clearInterval(state._timerId);
-        state.streak = state._shieldActive ? state.streak : 0; // shield يمنع كسر السلسلة
+        state.streak = state._shieldActive ? state.streak : 0;
         state._shieldActive = false;
         state._qAdvanced = true;
         setTimeout(nextStep, 10);
@@ -402,34 +430,31 @@
     var freezeBadge = $("#pfreeze");
     var shieldBadge = $("#pshield");
 
-    // HINT: أخفِ خيارًا خاطئًا بالكامل
     var btnH=$("#pHint");
     if (btnH) btnH.addEventListener("click", function(){
-      if (!useCoins(COSTS.hint)) return;
+      if (!useCoins(30)) return;
       var wrong = $all(".opt").filter(function(b){
         return b.getAttribute("data-ok")==="0" && !b.disabled && b.style.display!=="none";
       });
       if (!wrong.length) return;
       var pick = wrong[Math.floor(Math.random()*wrong.length)];
       pick.setAttribute("aria-hidden","true");
-      pick.style.display = "none"; // ← إخفاء كامل
+      pick.style.display = "none";
     });
 
-    // FREEZE: إيقاف المؤقّت 5 ثوانٍ
     var btnF=$("#pFreeze");
     if (btnF) btnF.addEventListener("click", function(){
       if (state._frozen) return;
-      if (!useCoins(COSTS.freeze)) return;
+      if (!useCoins(40)) return;
       state._frozen = true;
       if (freezeBadge) freezeBadge.style.display = "inline-block";
       setTimeout(function(){ state._frozen=false; if (freezeBadge) freezeBadge.style.display="none"; }, 5000);
     });
 
-    // SHIELD: يحمي السلسلة من الانكسار لخطأ واحد
     var btnS=$("#pShield");
     if (btnS) btnS.addEventListener("click", function(){
       if (state._shieldActive) return;
-      if (!useCoins(COSTS.shield)) return;
+      if (!useCoins(50)) return;
       state._shieldActive = true;
       if (shieldBadge) shieldBadge.style.display = "inline-block";
     });
@@ -474,7 +499,7 @@
       '<div class="card"><strong>'+t("streak")+':</strong> '+state.streak+'</div>'+
       '<div class="card"><strong>'+t("reward")+':</strong> <span class="coin"></span> '+coinsReward+'</div>'+
       '<div class="row" style="margin-top:12px">'+
-        '<a class="btn cta" id="claimBtn" style="flex:1)">'+t("again")+'</a>'+
+        '<a class="btn cta" id="claimBtn" style="flex:1">'+t("again")+'</a>'+
         '<a class="btn" href="#/modes" style="flex:1)">'+t("modesTitle")+'</a>'+
       '</div>'
     ));
@@ -518,7 +543,8 @@
   }
   function renderCustomization(){
     var c=state.content; var ownedMap={}; state.owned.forEach(function(id){ownedMap[id]=1;});
-    var char=c.characters[0]; var outfits=c.cosmetics;
+    var char=(c.characters&&c.characters[0]) || {name_ar:"تروفي",name_en:"Trophy",default:{colorway:"Gold"}};
+    var outfits=c.cosmetics||[];
     var equippedBadges = Object.keys(state.equipped).map(function(slot){
       var id=state.equipped[slot]; return id?'<span class="badge">'+slot+': '+id.replace(/_/g," ")+'</span>':'';
     }).filter(Boolean).join(" ") || '<span class="badge">'+t("nothingEquipped")+'</span>';
@@ -536,13 +562,13 @@
     return wrapPhone(screen(t("avatarTitle"),
       '<div class="card avatar" style="width:100%">'+
         '<div class="preview">'+previewSVG()+'</div>'+
-        '<div><div><strong>'+((lang==="ar")?char.name_ar:char.name_en)+' — '+char.default.colorway+'</strong></div>'+
+        '<div><div><strong>'+((lang==="ar")?char.name_ar:char.name_en)+' — '+(char.default&&char.default.colorway?char.default.colorway:"")+'</strong></div>'+
         '<div class="row" style="margin-top:6px">'+equippedBadges+'</div></div>'+
       '</div>'+
       outfits.map(item).join("")+
       '<div class="row" style="margin-top:12px">'+
-        '<div class="kbd" style="flex:1;text-align:center)">'+t("coins")+': '+state.wallet.coins+'</div>'+
-        '<div class="kbd" style="flex:1;text-align:center)">'+t("gems")+': '+state.wallet.gems+'</div>'+
+        '<div class="kbd" style="flex:1;text-align:center">'+t("coins")+': '+state.wallet.coins+'</div>'+
+        '<div class="kbd" style="flex:1;text-align:center">'+t("gems")+': '+state.wallet.gems+'</div>'+
       '</div>'
     ));
   }
@@ -550,7 +576,7 @@
     $all("[data-buy]").forEach(function(btn){
       btn.addEventListener("click", function(){
         var id=btn.getAttribute("data-buy");
-        var item=(state.content.cosmetics || []).find(function(x){return x.id===id;}) || {};
+        var item=((state.content&&state.content.cosmetics)||[]).find(function(x){return x.id===id;}) || {};
         var price=item.price || {};
         var ask = (!price || (!price.coins && !price.gems)) ? true : confirm(t("confirmBuy")+" — "+fmtPrice(price));
         if (!ask) return;
@@ -571,11 +597,11 @@
 
   // ===== Store page =====
   function renderStore(){
-    var c = state.content;
+    var c = state.content || {store:{daily:[],weekly:[]},cosmetics:[]};
     var owned = new Set(state.owned);
     var items = [].concat(
-      c.store.daily.map(function(id){ return c.cosmetics.find(function(x){ return x.id===id; }); }),
-      c.store.weekly.map(function(id){ return c.cosmetics.find(function(x){ return x.id===id; }); })
+      (c.store.daily||[]).map(function(id){ return (c.cosmetics||[]).find(function(x){ return x.id===id; }); }),
+      (c.store.weekly||[]).map(function(id){ return (c.cosmetics||[]).find(function(x){ return x.id===id; }); })
     ).filter(Boolean);
     function card(o){
       var isOwned = owned.has(o.id);
@@ -600,8 +626,8 @@
     return wrapPhone(
       screen(t("storeTitle"), items.map(card).join("") ) +
       '<div class="row" style="margin-top:12px">'+
-        '<div class="kbd" style="flex:1;text-align:center">'+t("coins")+': '+state.wallet.coins+'</div>'+
-        '<div class="kbd" style="flex:1;text-align:center">'+t("gems")+': '+state.wallet.gems+'</div>'+
+        '<div class="kbd" style="flex:1;text-align:center)">'+t("coins")+': '+state.wallet.coins+'</div>'+
+        '<div class="kbd" style="flex:1;text-align:center)">'+t("gems")+': '+state.wallet.gems+'</div>'+
       '</div>'
     );
   }
@@ -609,7 +635,8 @@
     $all("[data-store-buy]").forEach(function(btn){
       btn.addEventListener("click", function(){
         var id = btn.getAttribute("data-store-buy");
-        var item = (state.content.cosmetics || []).find(function(x){ return x.id===id; }) || {};
+        var c = state.content || {cosmetics:[]};
+        var item = (c.cosmetics||[]).find(function(x){ return x.id===id; }) || {};
         var price = item.price || {};
         var ask = (!price || (!price.coins && !price.gems)) ? true : confirm(t("confirmBuy")+" — "+fmtPrice(price));
         if (!ask) return;
