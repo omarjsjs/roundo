@@ -1,6 +1,5 @@
-/* Roundo v10 – Robust mount + DOMContentLoaded; Modes → Lobby → Questions + Timer + Score/Streak + Rewards */
+/* Roundo v11 – إصلاح التنقل + إعادة الرسم داخل نفس المسار، تشغيل بعد DOMLoaded، وإنشاء #app عند الحاجة */
 (() => {
-  // ===== i18n =====
   const STR = {
     ar:{app:"راوندو",badge:"نموذج",home:"الرئيسية",modes:"أنماط اللعب",lobby:"اللوبي",store:"المتجر",
         splashTitle:"الشاشة الافتتاحية",quickPlay:"مباراة سريعة",playNow:"ابدأ الآن",
@@ -26,11 +25,10 @@
         mode:"Mode", you:"You"}
   };
 
-  // ===== helpers / state =====
   const $  = (s, r=document)=>r.querySelector(s);
   const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
-  const urlLang = new URLSearchParams(location.search).get("lang");
 
+  const urlLang = new URLSearchParams(location.search).get("lang");
   let lang  = urlLang || localStorage.getItem("roundo_lang")  || "ar";
   let theme = localStorage.getItem("roundo_theme") || "dark";
 
@@ -41,8 +39,7 @@
     equipped: JSON.parse(localStorage.getItem("roundo_equipped") || '{"headband":null,"scarf":null,"visor":null,"cape":null,"charm":null}'),
     content: null,
     currentMode: null,
-    questionIx: 0,
-    score: 0, streak: 0, _awarded: false,
+    questionIx: 0, score: 0, streak: 0, _awarded:false,
     _qAdvanced:false, _timerId:null, _remaining:20000,
     lobby:{players:2, timeMs:20000, powerups:true}
   };
@@ -54,26 +51,24 @@
   const fmtPrice = p => !p ? t("free") : (p.coins ? `${p.coins} ${t("coins")}` : `${p.gems} ${t("gems")}`);
 
   function getApp(){
-    let app = document.getElementById("app");
+    let app = $("#app");
     if (!app){
       app = document.createElement("main");
       app.id = "app";
-      // ضع الحاوية تحت الهيدر إذا موجود، وإلا في آخر الـ body
-      const header = document.querySelector("header") || document.body;
-      header.parentNode.insertBefore(app, header.nextSibling);
+      const after = document.querySelector("header") || document.body;
+      after.parentNode.insertBefore(app, after.nextSibling);
     }
     return app;
   }
 
-  function safeText(id, text){ const el=document.getElementById(id); if (el) el.textContent=text; }
-
+  function safeText(id, text){ const el=$("#"+id); if (el) el.textContent=text; }
   function setLang(l){
     lang=l; localStorage.setItem("roundo_lang",l);
     document.documentElement.lang=l; document.documentElement.dir=(l==="ar"?"rtl":"ltr");
     safeText("t_app", t("app")); safeText("t_badge", STR[lang].badge);
     safeText("t_home", t("home")); safeText("t_modes", t("modes"));
     safeText("t_lobby", t("lobby")); safeText("t_store", t("store"));
-    const bl=document.getElementById("btnLang"); if (bl) bl.textContent=(l==="ar"?"EN":"AR");
+    const bl=$("#btnLang"); if (bl) bl.textContent=(l==="ar"?"EN":"AR");
     render();
   }
   function setTheme(m){
@@ -88,7 +83,7 @@
     if (state.content) return;
     try{
       const res = await fetch("content.json",{cache:"no-store"});
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw 0;
       state.content = await res.json();
     }catch{
       state.content = {
@@ -120,11 +115,10 @@
   addEventListener("resize", ensurePortrait);
   addEventListener("orientationchange", ensurePortrait);
 
-  // ===== layout helpers =====
   const wrapPhone = inner => `<div style="width:min(420px,94vw);margin:12px auto;display:flex;flex-direction:column;gap:12px">${inner}</div>`;
   const screen = (title, body)=>`<section class="card" style="width:100%"><div class="h1">${title}</div>${body}</section>`;
 
-  // ===== pages =====
+  // ===== Pages =====
   function renderSplash(){
     return wrapPhone(
       screen(t("splashTitle"),
@@ -136,13 +130,11 @@
     );
   }
   function renderHome(){
-    return wrapPhone(
-      screen(t("home"),
-        `<a class="btn" href="#/modes" style="width:100%;margin-top:6px">${t("modesTitle")}</a>`
-        + `<a class="btn" href="#/customization" style="width:100%;margin-top:6px">${t("avatarTitle")}</a>`
-        + `<a class="btn" href="#/store" style="width:100%;margin-top:6px">${t("storeTitle")}</a>`
-      )
-    );
+    return wrapPhone(screen(t("home"),
+      `<a class="btn" href="#/modes" style="width:100%;margin-top:6px">${t("modesTitle")}</a>
+       <a class="btn" href="#/customization" style="width:100%;margin-top:6px">${t("avatarTitle")}</a>
+       <a class="btn" href="#/store" style="width:100%;margin-top:6px">${t("storeTitle")}</a>`
+    ));
   }
   function renderModes(){
     const modes = [
@@ -153,18 +145,16 @@
       {id:"kb",    name:"Knowledge Bomb", playable:false},
       {id:"tourn", name:"Tournaments",    playable:false},
     ];
-    return wrapPhone(
-      screen(t("modesTitle"),
-        modes.map(m=>`
-          <div class="card" style="margin-top:8px">
-            <div class="row" style="justify-content:space-between">
-              <strong>${m.name}</strong>
-              ${m.playable ? `<button class="btn cta" data-start-mode="${m.id}">${t("playNow")}</button>`
-                           : `<span class="badge">${t("inProgress")}</span>`}
-            </div>
-          </div>`).join("")
-      )
-    );
+    return wrapPhone(screen(t("modesTitle"),
+      modes.map(m=>`
+        <div class="card" style="margin-top:8px">
+          <div class="row" style="justify-content:space-between">
+            <strong>${m.name}</strong>
+            ${m.playable ? `<button class="btn cta" data-start-mode="${m.id}">${t("playNow")}</button>`
+                         : `<span class="badge">${t("inProgress")}</span>`}
+          </div>
+        </div>`).join("")
+    ));
   }
   function wireModes(){
     $$("[data-start-mode]").forEach(btn=>{
@@ -178,44 +168,42 @@
   }
 
   function renderLobby(){
-    return wrapPhone(
-      screen(t("lobbyTitle"),
-        `<div class="card">
-          <div class="row" style="justify-content:space-between">
-            <div><span class="badge">${t("mode")}</span> <strong>${state.currentMode||"—"}</strong></div>
-            <div class="badge">${t("players")}: ${state.lobby.players}</div>
-          </div>
-          <div class="row" style="margin-top:8px;gap:8px">
-            <label class="kbd" style="flex:1">${t("players")}
-              <select id="selPlayers" style="width:100%;margin-top:4px">
-                <option value="2" ${state.lobby.players===2?"selected":""}>2</option>
-                <option value="3" ${state.lobby.players===3?"selected":""}>3</option>
-                <option value="4" ${state.lobby.players===4?"selected":""}>4</option>
-              </select>
-            </label>
-            <label class="kbd" style="flex:1">${t("timePerQ")}
-              <select id="selTime" style="width:100%;margin-top:4px">
-                <option value="10000" ${state.lobby.timeMs===10000?"selected":""}>10s</option>
-                <option value="20000" ${state.lobby.timeMs===20000?"selected":""}>20s</option>
-                <option value="30000" ${state.lobby.timeMs===30000?"selected":""}>30s</option>
-              </select>
-            </label>
-          </div>
-          <div class="row" style="margin-top:8px;justify-content:space-between">
-            <div class="kbd">${t("powerups")}: <button id="btnPower" class="btn" style="margin-inline-start:6px">${state.lobby.powerups?t("on"):t("off")}</button></div>
-            <a class="btn" href="#/modes">${t("modesTitle")}</a>
-          </div>
+    return wrapPhone(screen(t("lobbyTitle"),
+      `<div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div><span class="badge">${t("mode")}</span> <strong>${state.currentMode||"—"}</strong></div>
+          <div class="badge">${t("players")}: ${state.lobby.players}</div>
         </div>
-        <div class="card">
-          <div class="h2">${t("players")}</div>
-          <div class="row" style="gap:8px;flex-wrap:wrap">
-            <span class="badge">${t("you")}</span>
-            ${Array.from({length:state.lobby.players-1}).map((_,i)=>`<span class="badge">Friend#${200+i}</span>`).join("")}
-          </div>
+        <div class="row" style="margin-top:8px;gap:8px">
+          <label class="kbd" style="flex:1">${t("players")}
+            <select id="selPlayers" style="width:100%;margin-top:4px">
+              <option value="2" ${state.lobby.players===2?"selected":""}>2</option>
+              <option value="3" ${state.lobby.players===3?"selected":""}>3</option>
+              <option value="4" ${state.lobby.players===4?"selected":""}>4</option>
+            </select>
+          </label>
+          <label class="kbd" style="flex:1">${t("timePerQ")}
+            <select id="selTime" style="width:100%;margin-top:4px">
+              <option value="10000" ${state.lobby.timeMs===10000?"selected":""}>10s</option>
+              <option value="20000" ${state.lobby.timeMs===20000?"selected":""}>20s</option>
+              <option value="30000" ${state.lobby.timeMs===30000?"selected":""}>30s</option>
+            </select>
+          </label>
         </div>
-        <button class="btn cta" id="btnStart" style="width:100%">${t("startMatch")}</button>`
-      )
-    );
+        <div class="row" style="margin-top:8px;justify-content:space-between">
+          <div class="kbd">${t("powerups")}: <button id="btnPower" class="btn" style="margin-inline-start:6px">${state.lobby.powerups?t("on"):t("off")}</button></div>
+          <a class="btn" href="#/modes">${t("modesTitle")}</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="h2">${t("players")}</div>
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <span class="badge">${t("you")}</span>
+          ${Array.from({length:state.lobby.players-1}).map((_,i)=>`<span class="badge">Friend#${200+i}</span>`).join("")}
+        </div>
+      </div>
+      <button class="btn cta" id="btnStart" style="width:100%">${t("startMatch")}</button>`
+    ));
   }
   function wireLobby(){
     const sp=$("#selPlayers"); if (sp) sp.addEventListener("change",e=>{state.lobby.players=parseInt(e.target.value,10); render();});
@@ -245,26 +233,24 @@
     const q = QUESTIONS[state.questionIx];
     const prompt = (lang==="ar")? q.prompt_ar : q.prompt_en;
     const opts = q.answers.map((a,i)=>({txt:(lang==="ar"?a.ar:a.en),ok:!!a.correct,i}));
-    return wrapPhone(
-      screen(t("questionTitle"),
-        `<div class="row" style="justify-content:space-between;margin-bottom:8px">
-          <span class="kbd">${t("score")}: ${state.score}</span>
-          <span class="kbd">${t("streak")}: ${state.streak}</span>
-        </div>
-        <div class="h2" style="margin-bottom:8px">${prompt}</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          ${opts.map(o=>`<button class="opt btn" style="width:100%;text-align:start" data-ix="${o.i}" data-ok="${o.ok?'1':'0'}">${o.txt}</button>`).join("")}
-        </div>
-        <div class="meta" style="margin-top:10px">
-          <span class="badge">Round ${state.questionIx+1}/${QUESTIONS.length}</span>
-          <span class="badge" id="timer">${mmss(state._remaining)}</span>
-        </div>
-        <div class="row" style="margin-top:8px;justify-content:space-between">
-          <a class="btn" href="#/lobby">⟵ ${t("lobby")}</a>
-          <button class="btn" id="nextBtn">${t("next")}</button>
-        </div>`
-      )
-    );
+    return wrapPhone(screen(t("questionTitle"),
+      `<div class="row" style="justify-content:space-between;margin-bottom:8px">
+        <span class="kbd">${t("score")}: ${state.score}</span>
+        <span class="kbd">${t("streak")}: ${state.streak}</span>
+      </div>
+      <div class="h2" style="margin-bottom:8px">${prompt}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${opts.map(o=>`<button class="opt btn" style="width:100%;text-align:start" data-ix="${o.i}" data-ok="${o.ok?'1':'0'}">${o.txt}</button>`).join("")}
+      </div>
+      <div class="meta" style="margin-top:10px">
+        <span class="badge">Round ${state.questionIx+1}/${QUESTIONS.length}</span>
+        <span class="badge" id="timer">${mmss(state._remaining)}</span>
+      </div>
+      <div class="row" style="margin-top:8px;justify-content:space-between">
+        <a class="btn" href="#/lobby">⟵ ${t("lobby")}</a>
+        <button class="btn" id="nextBtn">${t("next")}</button>
+      </div>`
+    ));
   }
   function startTimer(){
     clearInterval(state._timerId);
@@ -282,16 +268,14 @@
     }, 100);
   }
   function nextStep(){
-  if (state.questionIx < QUESTIONS.length - 1) {
-    state.questionIx++;
-    // بما أن المسار ما تغيّر (لا يزال #/question) نعيد الرسم يدويًا
-    if (state.route === "question") render();
-    else location.hash = "#/question";
-  } else {
-    location.hash = "#/results";
-  }
-}
-
+    if (state.questionIx < QUESTIONS.length - 1) {
+      state.questionIx++;
+      // إصلاح: نفس المسار (#/question) → أرسم يدويًا
+      if (state.route === "question") render();
+      else location.hash = "#/question";
+    } else {
+      location.hash = "#/results";
+    }
   }
   function wireQuestion(){
     state._qAdvanced=false; startTimer();
@@ -303,10 +287,8 @@
         btn.classList.add(ok?"correct":"wrong");
         const nb=$("#nextBtn"); if (nb) nb.textContent = ok ? t("correct") : t("wrong");
         state._qAdvanced=true;
-        if (ok){
-          const bonus = Math.ceil(state._remaining/1000)*5;
-          state.score += 100 + bonus; state.streak += 1;
-        }else{ state.streak = 0; }
+        if (ok){ const bonus=Math.ceil(state._remaining/1000)*5; state.score+=100+bonus; state.streak+=1; }
+        else { state.streak=0; }
         setTimeout(nextStep, 700);
       });
     });
@@ -315,17 +297,15 @@
 
   function renderResults(){
     const coinsReward = Math.max(0, Math.round(state.score*0.10));
-    return wrapPhone(
-      screen(t("resultsTitle"),
-        `<div class="card"><strong>${t("score")}:</strong> ${state.score}</div>
-         <div class="card"><strong>${t("streak")}:</strong> ${state.streak}</div>
-         <div class="card"><strong>${t("reward")}:</strong> <span class="coin"></span> ${coinsReward}</div>
-         <div class="row" style="margin-top:12px">
-           <a class="btn cta" id="claimBtn" style="flex:1">${t("again")}</a>
-           <a class="btn" href="#/modes" style="flex:1">${t("modesTitle")}</a>
-         </div>`
-      )
-    );
+    return wrapPhone(screen(t("resultsTitle"),
+      `<div class="card"><strong>${t("score")}:</strong> ${state.score}</div>
+       <div class="card"><strong>${t("streak")}:</strong> ${state.streak}</div>
+       <div class="card"><strong>${t("reward")}:</strong> <span class="coin"></span> ${coinsReward}</div>
+       <div class="row" style="margin-top:12px">
+         <a class="btn cta" id="claimBtn" style="flex:1">${t("again")}</a>
+         <a class="btn" href="#/modes" style="flex:1">${t("modesTitle")}</a>
+       </div>`
+    ));
   }
   function wireResults(){
     const cb=$("#claimBtn");
@@ -380,27 +360,25 @@
                `<span class="badge">${t("owned")}</span><button class="btn cta" data-equip="${o.id}" data-slot="${o.slot}">${t("equip")}</button>`
         }</div></div>`;
     }
-    return wrapPhone(
-      screen(t("avatarTitle"),
-        `<div class="card avatar" style="width:100%">
-          <div class="preview">${previewSVG()}</div>
-          <div><div><strong>${(lang==="ar"?char.name_ar:char.name_en)} — ${char.default.colorway}</strong></div>
-          <div class="row" style="margin-top:6px">${equippedBadges}</div></div>
-        </div>
-        ${outfits.map(item).join("")}
-        <div class="row" style="margin-top:12px">
-          <div class="kbd" style="flex:1;text-align:center">${t("coins")}: ${state.wallet.coins}</div>
-          <div class="kbd" style="flex:1;text-align:center">${t("gems")}: ${state.wallet.gems}</div>
-        </div>`
-      )
-    );
+    return wrapPhone(screen(t("avatarTitle"),
+      `<div class="card avatar" style="width:100%">
+        <div class="preview">${previewSVG()}</div>
+        <div><div><strong>${(lang==="ar"?char.name_ar:char.name_en)} — ${char.default.colorway}</strong></div>
+        <div class="row" style="margin-top:6px">${equippedBadges}</div></div>
+      </div>
+      ${outfits.map(item).join("")}
+      <div class="row" style="margin-top:12px">
+        <div class="kbd" style="flex:1;text-align:center">${t("coins")}: ${state.wallet.coins}</div>
+        <div class="kbd" style="flex:1;text-align:center">${t("gems")}: ${state.wallet.gems}</div>
+      </div>`
+    ));
   }
   function wireCustomization(){
     $$("[data-buy]").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         const id=btn.dataset.buy;
-        const item=state.content.cosmetics.find(x=>x.id===id) || {};
-        const price=(item.price)||{};
+        const item=state.content.cosmetics.find(x=>x.id===id)||{};
+        const price=item.price||{};
         if (price.coins && state.wallet.coins<price.coins) { alert(t("notEnough")); return; }
         if (price.gems  && state.wallet.gems <price.gems ) { alert(t("notEnough")); return; }
         if (price.coins) state.wallet.coins-=price.coins;
@@ -409,10 +387,10 @@
       });
     });
     $$("[data-equip]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{ state.equipped[btn.dataset.slot]=btn.dataset.equip; saveEquipped(); render();});
+      btn.addEventListener("click", ()=>{ state.equipped[btn.dataset.slot]=btn.dataset.equip; saveEquipped(); render(); });
     });
     $$("[data-unequip]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{ state.equipped[btn.dataset.unequip]=null; saveEquipped(); render();});
+      btn.addEventListener("click", ()=>{ state.equipped[btn.dataset.unequip]=null; saveEquipped(); render(); });
     });
   }
 
@@ -422,17 +400,14 @@
       c.store.daily.map(id=>c.cosmetics.find(x=>x.id===id)),
       c.store.weekly.map(id=>c.cosmetics.find(x=>x.id===id))
     ).filter(Boolean);
-    return wrapPhone(
-      screen(t("storeTitle"),
-        items.map(o=>`<div class="card store-item" style="width:100%">
-          <div><div><strong>${o.id.replace(/_/g," ")}</strong></div><div class="price">${fmtPrice(o.price)}</div></div>
-          <a class="btn" href="#/customization">${t("equip")}</a>
-        </div>`).join("")
-      )
-    );
+    return wrapPhone(screen(t("storeTitle"),
+      items.map(o=>`<div class="card store-item" style="width:100%">
+        <div><div><strong>${o.id.replace(/_/g," ")}</strong></div><div class="price">${fmtPrice(o.price)}</div></div>
+        <a class="btn" href="#/customization">${t("equip")}</a>
+      </div>`).join("")
+    ));
   }
 
-  // ===== render switch =====
   async function render(){
     const app = getApp();
     await loadContent();
@@ -458,12 +433,9 @@
     ensurePortrait();
   }
 
-  // ===== boot after DOM ready =====
   function boot(){
-    const bl=document.getElementById("btnLang");
-    if (bl) bl.addEventListener("click", ()=> setLang(lang==="ar"?"en":"ar"));
-    const bt=document.getElementById("btnTheme");
-    if (bt) bt.addEventListener("click", ()=> setTheme(theme==="dark"?"light":"dark"));
+    const bl=$("#btnLang");  if (bl) bl.addEventListener("click", ()=> setLang(lang==="ar"?"en":"ar"));
+    const bt=$("#btnTheme"); if (bt) bt.addEventListener("click", ()=> setTheme(theme==="dark"?"light":"dark"));
     setLang(lang); setTheme(theme);
     if (!location.hash) location.hash="#/splash";
     render();
