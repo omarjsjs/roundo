@@ -16,7 +16,8 @@
         score:"النقاط", streak:"سلسلة", reward:"المكافأة",
         startMatch:"ابدأ المباراة", timePerQ:"الوقت لكل سؤال", powerups:"القدرات", on:"تشغيل", off:"إيقاف",
         mode:"النمط", you:"أنت", rounds:"الجولات", categories:"التصنيفات", difficulty:"الصعوبة",
-        all:"الكل", easy:"سهل", medium:"متوسط", hard:"صعب"},
+        all:"الكل", easy:"سهل", medium:"متوسط", hard:"صعب",
+        hint:"مساعدة 50/50", freeze:"إيقاف الوقت", shield:"درع", usedUp:"تم الاستخدام"},
     en:{app:"Roundo",badge:"Prototype",home:"Home",modes:"Game Modes",lobby:"Lobby",store:"Store",
         splashTitle:"Splash",quickPlay:"Quick Play",playNow:"Play Now",
         modesTitle:"Game Modes",lobbyTitle:"Lobby",storeTitle:"Store",avatarTitle:"My Avatar",
@@ -28,7 +29,8 @@
         score:"Score", streak:"Streak", reward:"Reward",
         startMatch:"Start Match", timePerQ:"Time per question", powerups:"Power-ups", on:"On", off:"Off",
         mode:"Mode", you:"You", rounds:"Rounds", categories:"Categories", difficulty:"Difficulty",
-        all:"All", easy:"Easy", medium:"Medium", hard:"Hard"}
+        all:"All", easy:"Easy", medium:"Medium", hard:"Hard",
+        hint:"Hint 50/50", freeze:"Freeze", shield:"Shield", usedUp:"Used up"}
   };
 
   // ===== helpers =====
@@ -53,7 +55,9 @@
     currentMode:null,
     questionIx:0, score:0, streak:0, _awarded:false,
     _qAdvanced:false, _timerId:null, _remaining:20000,
-    lobby:{players:2,timeMs:20000,powerups:true,rounds:6,cats:[],diffs:[]}
+    lobby:{players:2,timeMs:20000,powerups:true,rounds:6,cats:[],diffs:[]},
+    // القدرات
+    power:{hint:2, freeze:1, shield:1, shieldArmed:false}
   };
   var Q_ALL=[];    // normalized from content.json
   var Q_ACTIVE=[]; // filtered for the match
@@ -312,6 +316,8 @@
     Q_ACTIVE = pool.slice(0,n);
     Q_ORDER = []; for(var i=0;i<Q_ACTIVE.length;i++) Q_ORDER.push(i);
     state.questionIx=0; state.score=0; state.streak=0; state._awarded=false;
+    // إعادة تعبئة القدرات في بداية كل مباراة
+    state.power = {hint:2, freeze:1, shield:1, shieldArmed:false};
     location.hash="#/question";
   }
 
@@ -333,6 +339,16 @@
         '<span class="kbd">'+t("score")+': '+state.score+'</span>'+
         '<span class="kbd">'+t("streak")+': '+state.streak+'</span>'+
       '</div>'+
+
+      // شريط القدرات (يظهر فقط إذا كانت القدرات مفعّلة في اللوبي)
+      (state.lobby.powerups ? (
+        '<div class="row" style="gap:8px;margin:6px 0;flex-wrap:wrap">'+
+          '<button class="btn" id="powHint">'+t("hint")+' ('+state.power.hint+')</button>'+
+          '<button class="btn" id="powFreeze">'+t("freeze")+' ('+state.power.freeze+')</button>'+
+          '<button class="btn" id="powShield">'+(state.power.shieldArmed ? (t("shield")+' ✓') : (t("shield")+' ('+state.power.shield+')'))+'</button>'+
+        '</div>'
+      ) : '')+
+
       '<div class="h2" style="margin-bottom:8px">'+prompt+'</div>'+
       '<div style="display:flex;flex-direction:column;gap:8px">'+
         opts.map(function(o){return '<button class="opt btn" style="width:100%;text-align:start" data-ix="'+o.i+'" data-ok="'+(o.ok?'1':'0')+'">'+o.txt+'</button>';}).join("")+
@@ -362,22 +378,94 @@
     if(state.questionIx < Q_ORDER.length-1){ state.questionIx++; if(state.route==="question") render(); else location.hash="#/question"; }
     else { location.hash="#/results"; }
   }
+
+  // تحديث النصوص وحالة الأزرار لشريط القدرات دون إعادة رسم الصفحة
+  function updatePowerBar(){
+    var bh=$("#powHint"), bf=$("#powFreeze"), bs=$("#powShield");
+    if (bh){ bh.textContent = t("hint")+" ("+state.power.hint+")"; bh.disabled = state.power.hint<=0; }
+    if (bf){ bf.textContent = t("freeze")+" ("+state.power.freeze+")"; bf.disabled = state.power.freeze<=0; }
+    if (bs){
+      bs.textContent = state.power.shieldArmed ? (t("shield")+" ✓") : (t("shield")+" ("+state.power.shield+")");
+      bs.disabled = (state.power.shield<=0 && !state.power.shieldArmed);
+    }
+  }
+
   function wireQuestion(){
-    state._qAdvanced=false; startTimer();
+    state._qAdvanced=false; startTimer(); updatePowerBar();
+
     $all(".opt").forEach(function(btn){
       btn.addEventListener("click",function(){
         if(state._qAdvanced) return;
-        var ok=btn.getAttribute("data-ok")==="1";
+
+        var okOriginal = (btn.getAttribute("data-ok")==="1");
+        var ok = okOriginal;
+
+        // درع
+        var usedShield = false;
+        if (!ok && state.power.shieldArmed){
+          usedShield = true;
+          state.power.shieldArmed = false;
+          state.power.shield = Math.max(0, state.power.shield-1);
+          ok = true; // اعتبرها صحيحة بفضل الدرع
+          updatePowerBar();
+        }
+
         $all(".opt").forEach(function(b){b.disabled=true;});
         btn.classList.add(ok?"correct":"wrong");
         var nb=$("#nextBtn"); if(nb) nb.textContent=(ok?t("correct"):t("wrong"));
         state._qAdvanced=true;
-        if(ok){var bonus=Math.ceil(state._remaining/1000)*5; state.score+=100+bonus; state.streak+=1;}
-        else{state.streak=0;}
+
+        if(ok){
+          if(usedShield){
+            // الدرع يمنع كسر السلسلة لكن بدون نقاط إضافية
+          }else{
+            var bonus=Math.ceil(state._remaining/1000)*5; state.score+=100+bonus; state.streak+=1;
+          }
+        }else{
+          state.streak=0;
+        }
         setTimeout(nextStep,700);
       });
     });
+
     var nb=$("#nextBtn"); if(nb) nb.addEventListener("click",function(){ if(!state._qAdvanced){state.streak=0;state._qAdvanced=true;} nextStep(); });
+
+    // ===== قدرات =====
+    var bh=$("#powHint"), bf=$("#powFreeze"), bs=$("#powShield");
+
+    // 50/50: يعطّل خيارين خاطئين
+    if (bh) bh.addEventListener("click", function(){
+      if (state.power.hint<=0) return;
+      var wrong = $all(".opt").filter(function(b){ return b.getAttribute("data-ok")!=="1" && !b.disabled; });
+      shuffle(wrong);
+      var toDisable = Math.min(2, wrong.length);
+      for (var i=0;i<toDisable;i++){
+        wrong[i].disabled = true;
+        wrong[i].style.opacity = ".35";
+      }
+      state.power.hint--;
+      updatePowerBar();
+    });
+
+    // Freeze: +5 ثواني
+    if (bf) bf.addEventListener("click", function(){
+      if (state.power.freeze<=0) return;
+      state._remaining += 5000;
+      var timerEl=$("#timer"); if (timerEl) timerEl.textContent = mmss(state._remaining);
+      state.power.freeze--;
+      updatePowerBar();
+    });
+
+    // Shield: تفعيل/إلغاء تفعيل الدرع
+    if (bs) bs.addEventListener("click", function(){
+      if (state.power.shieldArmed){
+        state.power.shieldArmed=false;
+      } else {
+        if (state.power.shield<=0) return;
+        state.power.shieldArmed=true;
+      }
+      updatePowerBar();
+    });
   }
 
   function renderResults(){
@@ -452,7 +540,7 @@
       '</div>'+
       outfits.map(item).join("")+
       '<div class="row" style="margin-top:12px">'+
-        '<div class="kbd" style="flex:1;text-align:center">'+t("coins")+': '+state.wallet.coins+'</div>'+
+        '<div class="kbd" style="flex:1;text-align:center)">'+t("coins")+': '+state.wallet.coins+'</div>'+
         '<div class="kbd" style="flex:1;text-align:center)">'+t("gems")+': '+state.wallet.gems+'</div>'+
       '</div>'
     ));
