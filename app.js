@@ -282,8 +282,16 @@
     }, 100);
   }
   function nextStep(){
-    if (state.questionIx < QUESTIONS.length - 1){ state.questionIx++; location.hash="#/question"; }
-    else{ location.hash="#/results"; }
+  if (state.questionIx < QUESTIONS.length - 1) {
+    state.questionIx++;
+    // بما أن المسار ما تغيّر (لا يزال #/question) نعيد الرسم يدويًا
+    if (state.route === "question") render();
+    else location.hash = "#/question";
+  } else {
+    location.hash = "#/results";
+  }
+}
+
   }
   function wireQuestion(){
     state._qAdvanced=false; startTimer();
