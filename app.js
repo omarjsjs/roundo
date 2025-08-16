@@ -1,39 +1,39 @@
-/* Roundo v20 – Rounds selector + better "All" mixing + same powerups + cache-busted content */
+/* Roundo v16 — Questions ONLY from content.json + Filters + Dynamic Q-Bank + Full-digit HINT */
 (function () {
   'use strict';
 
   // ===== i18n =====
   var STR = {
-    ar:{app:"راوندو",badge:"نموذج",home:"الرئيسية",modes:"أنماط اللعب",lobby:"اللوبي",store:"المتجر",
+    ar:{app:"راوندو",badge:"نموذج",home:"الرئيسية",modes:"إعداد المباراة",lobby:"اللوبي",store:"المتجر",
         splashTitle:"الشاشة الافتتاحية",quickPlay:"مباراة سريعة",playNow:"ابدأ الآن",
-        modesTitle:"أنماط اللعب",lobbyTitle:"اللوبي",storeTitle:"المتجر",avatarTitle:"شخصيتي",
-        questionTitle:"السؤال",resultsTitle:"النتائج",abilities:"القدرات",traps:"الفخاخ",progress:"التقدم",
+        storeTitle:"المتجر",avatarTitle:"شخصيتي",questionTitle:"السؤال",resultsTitle:"النتائج",
+        abilities:"القدرات",traps:"الفخاخ",progress:"التقدم",
         owned:"مملوك",buy:"شراء",equip:"تجهيز",unequip:"إزالة",coins:"عملة",gems:"جوهرة",
         free:"مجاني",inProgress:"قريبًا",notEnough:"لا توجد عملات كافية",
         correct:"إجابة صحيحة!",wrong:"إجابة خاطئة",next:"التالي",again:"العب مجددًا",
-        nothingEquipped:"لا شيء مجهّز", players:"اللاعبون", rotate:"فضلاً استخدم الجهاز بوضع الطول",
+        nothingEquipped:"لا شيء مجهّز", players:"اللاعبون", rotate:"فضلاً استخدم وضع الطول",
         score:"النقاط", streak:"سلسلة", reward:"المكافأة",
         startMatch:"ابدأ المباراة", timePerQ:"الوقت لكل سؤال", powerups:"القدرات", on:"تشغيل", off:"إيقاف",
         mode:"النمط", you:"أنت",
-        category:"التصنيف", difficulty:"الصعوبة", any:"الكل",
-        hint:"Hint", freeze:"Freeze", shield:"Shield",
-        sound:"الصوت", reset:"إعادة ضبط", confirmBuy:"تأكيد الشراء", needOwn:"اشتري العنصر أولًا",
-        rounds:"الجولات"},
-    en:{app:"Roundo",badge:"Prototype",home:"Home",modes:"Game Modes",lobby:"Lobby",store:"Store",
+        category:"التصنيف", difficulty:"الصعوبة", rounds:"عدد الجولات", all:"الكل",
+        hint:"Hint (إخفاء الأرقام)", skip:"تخطي",
+        noQuestions:"لا توجد أسئلة مطابقة للإعدادات. راجع content.json أو خفِّف الفلاتر.",
+        loadedCount:"تم تحميل عدد الأسئلة: "},
+    en:{app:"Roundo",badge:"Prototype",home:"Home",modes:"Match Setup",lobby:"Lobby",store:"Store",
         splashTitle:"Splash",quickPlay:"Quick Play",playNow:"Play Now",
-        modesTitle:"Game Modes",lobbyTitle:"Lobby",storeTitle:"Store",avatarTitle:"My Avatar",
-        questionTitle:"Question",resultsTitle:"Results",abilities:"Abilities",traps:"Traps",progress:"Progress",
+        storeTitle:"Store",avatarTitle:"My Avatar",questionTitle:"Question",resultsTitle:"Results",
+        abilities:"Abilities",traps:"Traps",progress:"Progress",
         owned:"Owned",buy:"Buy",equip:"Equip",unequip:"Unequip",coins:"Coin",gems:"Gem",
         free:"Free",inProgress:"Coming soon",notEnough:"Not enough coins",
         correct:"Correct!",wrong:"Wrong",next:"Next",again:"Play Again",
-        nothingEquipped:"Nothing equipped", players:"Players", rotate:"Please use portrait orientation",
+        nothingEquipped:"Nothing equipped", players:"Players", rotate:"Please use portrait",
         score:"Score", streak:"Streak", reward:"Reward",
         startMatch:"Start Match", timePerQ:"Time per question", powerups:"Power-ups", on:"On", off:"Off",
         mode:"Mode", you:"You",
-        category:"Category", difficulty:"Difficulty", any:"Any",
-        hint:"Hint", freeze:"Freeze", shield:"Shield",
-        sound:"Sound", reset:"Reset", confirmBuy:"Confirm purchase", needOwn:"Please buy this first",
-        rounds:"Rounds"}
+        category:"Category", difficulty:"Difficulty", rounds:"Rounds", all:"All",
+        hint:"Hint (hide digits)", skip:"Skip",
+        noQuestions:"No questions match your filters. Check content.json or relax filters.",
+        loadedCount:"Loaded questions: "}
   };
 
   // ===== helpers =====
@@ -42,68 +42,54 @@
   function t(k){ return (STR[lang] && STR[lang][k]) || k; }
   function safeText(id, txt){ var el = $("#"+id); if (el) el.textContent = txt; }
   function shuffle(a){ for (var i=a.length-1; i>0; i--){ var j = Math.floor(Math.random()*(i+1)); var tmp=a[i]; a[i]=a[j]; a[j]=tmp; } return a; }
-  function mmss(ms){ var s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2); }
-  function uniq(arr){ var m={},out=[]; for(var i=0;i<arr.length;i++){var v=arr[i]; if(v==null) continue; var k=String(v).toLowerCase(); if(!m[k]){m[k]=1; out.push(v);} } return out; }
+  function maskDigits(str){ if (!str) return str; return String(str).replace(/[0-9٠-٩]+/g, function(m){ return Array(m.length+1).join('—'); }); }
 
   // ===== state =====
   var urlLang = (new URLSearchParams(location.search)).get("lang");
   var lang  = urlLang || localStorage.getItem("roundo_lang")  || "ar";
   var theme = localStorage.getItem("roundo_theme") || "dark";
-  var settings = JSON.parse(localStorage.getItem("roundo_settings") || '{"sound":true}');
-
-  var COSTS = { hint:30, freeze:40, shield:50 };
+  var savedSettings = JSON.parse(localStorage.getItem("roundo_settings") || '{"category":"all","difficulty":"all","rounds":10}');
 
   var state = {
     route: (location.hash.replace("#/","") || "splash"),
     wallet:   JSON.parse(localStorage.getItem("roundo_wallet")   || '{"coins":2000,"gems":150}'),
     owned:    JSON.parse(localStorage.getItem("roundo_owned")    || "[]"),
     equipped: JSON.parse(localStorage.getItem("roundo_equipped") || '{"headband":null,"scarf":null,"visor":null,"cape":null,"charm":null}'),
-    content: null,
-    currentMode: null,
-    filters:{ category:"any", difficulty:"any" },
-    rounds: 6, // ← جديد: عدد الجولات
+
+    content: null,         // يُحمّل من content.json فقط
+    questions: [],         // نسخة مُطبّعة من content.json.questions
+
+    // إعدادات
+    settings: { category: savedSettings.category, difficulty: savedSettings.difficulty, rounds: savedSettings.rounds },
+    currentMode: "quick",
+    lobby:{players:2, timeMs:20000, powerups:true},
+
+    // لعب
+    qSet: [],            // فهارس الأسئلة المختارة
     questionIx: 0, score: 0, streak: 0, _awarded:false,
     _qAdvanced:false, _timerId:null, _remaining:20000,
-    _frozen:false, _shieldActive:false,
-    lobby:{players:2, timeMs:20000, powerups:true}
+    _isNewQuestion:true, hintMaskOn:false
   };
+
+  function persistSettings(){ localStorage.setItem("roundo_settings", JSON.stringify(state.settings)); }
   function saveOwned(){  localStorage.setItem("roundo_owned", JSON.stringify(state.owned)); }
   function saveWallet(){ localStorage.setItem("roundo_wallet", JSON.stringify(state.wallet)); }
   function saveEquipped(){ localStorage.setItem("roundo_equipped", JSON.stringify(state.equipped)); }
-  function saveSettings(){ localStorage.setItem("roundo_settings", JSON.stringify(settings)); }
   function fmtPrice(p){ return !p ? t("free") : (p.coins ? (p.coins + " " + t("coins")) : (p.gems + " " + t("gems"))); }
 
-  // ===== sounds =====
-  var AC = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext||window.webkitAudioContext)() : null;
-  function beep(freq, dur){
-    if (!AC || !settings.sound) return;
-    var o=AC.createOscillator(), g=AC.createGain();
-    o.type="sine"; o.frequency.value=freq; g.gain.value=0.001; o.connect(g); g.connect(AC.destination);
-    var now=AC.currentTime; g.gain.exponentialRampToValueAtTime(0.2, now+0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + dur/1000);
-    o.start(); o.stop(now + dur/1000);
-  }
-  function snd(type){ if(type==="ok") beep(880,180); else if(type==="bad") beep(220,220); }
-
-  // ===== mount #app if missing =====
+  // mount #app if missing
   function getApp(){
     var app = $("#app");
     if (!app){
       app = document.createElement("main"); app.id = "app";
-      var header = $("header") || document.body; header.parentNode.insertBefore(app, header.nextSibling);
+      var header = $("header") || document.body;
+      header.parentNode.insertBefore(app, header.nextSibling);
     }
     return app;
   }
 
-  // ===== routing =====
-  function setRouteFromHash(){ state.route = (location.hash.replace("#/","") || "splash"); render(); }
-  window.addEventListener("hashchange", setRouteFromHash);
-  document.addEventListener("click", function(e){
-    var a = e.target && e.target.closest && e.target.closest('a[href^="#/"]');
-    if (!a) return; e.preventDefault();
-    var r = a.getAttribute("href").slice(2) || "splash";
-    if (r !== state.route) location.hash = "#/"+r; else render();
-  });
+  // ===== route =====
+  window.addEventListener("hashchange", function(){ state.route = location.hash.replace("#/","") || "splash"; render(); });
 
   // ===== lang/theme =====
   function setLang(l){
@@ -121,68 +107,43 @@
     else document.body.classList.remove("theme-light");
   }
 
-  // ===== Questions data (fallback) =====
-  var ALL_QUESTIONS = [
-    {id:1,prompt_ar:"ما عاصمة فرنسا؟",prompt_en:"What is the capital of France?",
-      answers:[{ar:"باريس",en:"Paris",correct:true},{ar:"روما",en:"Rome"},{ar:"مدريد",en:"Madrid"},{ar:"برلين",en:"Berlin"}], category:"general", difficulty:"easy"},
-    {id:2,prompt_ar:"٢ + ٢ = ؟",prompt_en:"2 + 2 = ?",
-      answers:[{ar:"٣",en:"3"},{ar:"٤",en:"4",correct:true},{ar:"٥",en:"5"},{ar:"٦",en:"6"}], category:"math", difficulty:"easy"},
-    {id:3,prompt_ar:"ما لون السماء الصافي عادةً؟",prompt_en:"What color is a clear sky?",
-      answers:[{ar:"أحمر",en:"Red"},{ar:"أزرق",en:"Blue",correct:true},{ar:"أخضر",en:"Green"},{ar:"أصفر",en:"Yellow"}], category:"science", difficulty:"easy"},
-    {id:4,prompt_ar:"أكبر كوكب في مجموعتنا الشمسية هو؟",prompt_en:"The largest planet in our solar system is?",
-      answers:[{ar:"المشتري",en:"Jupiter",correct:true},{ar:"زحل",en:"Saturn"},{ar:"الأرض",en:"Earth"},{ar:"المريخ",en:"Mars"}], category:"science", difficulty:"easy"},
-    {id:5,prompt_ar:"لغة تنسيق صفحات الويب هي؟",prompt_en:"The language used to style webpages is?",
-      answers:[{ar:"HTML",en:"HTML"},{ar:"CSS",en:"CSS",correct:true},{ar:"SQL",en:"SQL"},{ar:"C++",en:"C++"}], category:"web", difficulty:"easy"},
-    {id:6,prompt_ar:"عملة الإمارات العربية المتحدة؟",prompt_en:"The currency of the UAE?",
-      answers:[{ar:"اليورو",en:"Euro"},{ar:"الدرهم",en:"Dirham",correct:true},{ar:"الدولار",en:"Dollar"},{ar:"الريال",en:"Riyal"}], category:"uae", difficulty:"easy"}
-  ];
-  var QUESTIONS = ALL_QUESTIONS.slice();
-  var Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
-
-  // تحويل أسئلة content.json إلى نفس البنية
-  function applyContentQuestions(json){
-    if (!json || !json.questions || !json.questions.length) return;
+  // ===== content loading (ONLY from content.json) =====
+  function normalizeQuestions(list){
     var out = [];
-    for (var i=0;i<json.questions.length;i++){
-      var q=json.questions[i];
-      if (!q.ar || !q.en) continue;
-      var answers = [];
-      var N = Math.max((q.ar.answers||[]).length, (q.en.answers||[]).length);
-      for (var j=0;j<N;j++){
-        var a_ar = (q.ar.answers||[])[j] || {};
-        var a_en = (q.en.answers||[])[j] || {};
-        answers.push({ ar:a_ar.text||"", en:a_en.text||"", correct: !!(a_ar.correct||a_en.correct) });
-      }
-      out.push({
-        id: q.id || (i+1),
-        prompt_ar: q.ar.prompt || "",
-        prompt_en: q.en.prompt || "",
-        answers: answers,
-        category: q.category || "general",
-        difficulty: q.difficulty || "easy"
-      });
-    }
-    if (out.length) {
-      ALL_QUESTIONS.length = 0;
-      Array.prototype.push.apply(ALL_QUESTIONS, out);
-      QUESTIONS = ALL_QUESTIONS.slice();
-      Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
-    }
+    (list||[]).forEach(function(q){
+      try{
+        if (!q || !q.ar || !q.en || !q.ar.prompt || !q.en.prompt) return;
+        var arAns = (q.ar.answers||[]).filter(function(a){ return a && typeof a.text==="string"; });
+        var enAns = (q.en.answers||[]).filter(function(a){ return a && typeof a.text==="string"; });
+        if (arAns.length!==4 || enAns.length!==4) return;
+        var okAr = arAns.some(function(a){return !!a.correct;});
+        var okEn = enAns.some(function(a){return !!a.correct;});
+        if (!okAr || !okEn) return;
+        out.push({
+          category: q.category || "general",
+          difficulty: q.difficulty || "easy",
+          ar:{ prompt:String(q.ar.prompt), answers: arAns.map(function(a){ return {text:String(a.text), correct:!!a.correct}; }) },
+          en:{ prompt:String(q.en.prompt), answers: enAns.map(function(a){ return {text:String(a.text), correct:!!a.correct}; }) }
+        });
+      }catch(_e){}
+    });
+    return out;
   }
 
-  // ===== content (cache-bust via ?v=) =====
   function loadContent(cb){
     if (state.content){ if(cb) cb(); return; }
-    var v = (new URLSearchParams(location.search)).get("v") || Date.now();
-    fetch("content.json?v="+encodeURIComponent(v), {cache:"no-store"})
-      .then(function(r){ if(!r.ok) throw new Error(); return r.json(); })
+    fetch("content.json", {cache:"no-store"})
+      .then(function(r){ if(!r.ok) throw new Error("fetch failed"); return r.json(); })
       .then(function(json){
-        state.content = json;
-        try { applyContentQuestions(json); } catch(e){}
+        state.content = json || {};
+        state.questions = normalizeQuestions(json.questions);
+        console.info((lang==="ar"?STR.ar.loadedCount:STR.en.loadedCount), state.questions.length);
         if(cb) cb();
       })
-      .catch(function(){
-        state.content = {characters:[{name_ar:"تروفي",name_en:"Trophy",default:{colorway:"Gold"}}],cosmetics:[],store:{daily:[],weekly:[]},questions:[]};
+      .catch(function(err){
+        console.error("Failed to load content.json", err);
+        state.content = {characters:[{name_ar:"تروفي",name_en:"Trophy",default:{colorway:"Gold"}}], cosmetics:[], store:{daily:[],weekly:[]}};
+        state.questions = []; // لا نضع أسئلة داخلية أبداً
         if(cb) cb();
       });
   }
@@ -202,128 +163,62 @@
       )
     );
   }
-  function renderHome(){
-    return wrapPhone(screen(t("home"),
-      '<a class="btn" href="#/modes" style="width:100%;margin-top:6px">'+t("modesTitle")+'</a>' +
-      '<a class="btn" href="#/customization" style="width:100%;margin-top:6px">'+t("avatarTitle")+'</a>' +
-      '<a class="btn" href="#/store" style="width:100%;margin-top:6px">'+t("storeTitle")+'</a>' +
-      '<button class="btn" id="btnReset" style="width:100%;margin-top:6px">'+t("reset")+'</button>'
-    ));
-  }
 
-  function categories(){ return uniq(ALL_QUESTIONS.map(function(q){return q.category;})); }
-  function difficulties(){ return uniq(ALL_QUESTIONS.map(function(q){return q.difficulty;})); }
+  function uniqueValues(arr, key){
+    var seen = {}; var res = [];
+    arr.forEach(function(o){ var v=o[key]||"unknown"; if(!seen[v]){ seen[v]=1; res.push(v); } });
+    return res;
+  }
 
   function renderModes(){
-    var cats = categories();
-    var diffs = difficulties();
-    var catOpts = '<option value="any" '+(state.filters.category==="any"?'selected':'')+'>'+t("any")+'</option>'+
-      cats.map(function(c){ return '<option value="'+c+'" '+(state.filters.category===c?'selected':'')+'>'+c+'</option>'; }).join("");
-    var diffOpts = '<option value="any" '+(state.filters.difficulty==="any"?'selected':'')+'>'+t("any")+'</option>'+
-      diffs.map(function(d){ return '<option value="'+d+'" '+(state.filters.difficulty===d?'selected':'')+'>'+d+'</option>'; }).join("");
+    var qs = state.questions;
+    var cats = ["all"].concat(uniqueValues(qs, "category").filter(function(x){return x!=="all";}));
+    var diffs = ["all"].concat(uniqueValues(qs, "difficulty").filter(function(x){return x!=="all";}));
+    function opt(list, val){ return list.map(function(v){ return '<option value="'+v+'" '+(state.settings[val]===v?'selected':'')+'>'+ (v==="all"?t("all"):v) +'</option>'; }).join(""); }
+    var roundsOpts=[5,6,8,10,12,15,20].map(function(n){ return '<option value="'+n+'" '+(state.settings.rounds===n?'selected':'')+'>'+n+'</option>'; }).join("");
 
-    var roundsOpts = [5,6,8,10,12,15].map(function(n){
-      return '<option value="'+n+'" '+(state.rounds===n?'selected':'')+'>'+n+'</option>';
-    }).join("");
+    var body =
+      '<div class="card">'+
+        '<div class="kbd" style="margin-bottom:6px">'+t("loadedCount")+ (qs.length||0) +'</div>'+
+        '<label class="kbd" style="display:block;margin-bottom:8px">'+t("category")+
+          '<select id="selCat" style="width:100%;margin-top:4px">'+ opt(cats,"category") +'</select>'+
+        '</label>'+
+        '<label class="kbd" style="display:block;margin-bottom:8px">'+t("difficulty")+
+          '<select id="selDiff" style="width:100%;margin-top:4px">'+ opt(diffs,"difficulty") +'</select>'+
+        '</label>'+
+        '<label class="kbd" style="display:block;margin-bottom:8px">'+t("rounds")+
+          '<select id="selRounds" style="width:100%;margin-top:4px">'+ roundsOpts +'</select>'+
+        '</label>'+
+        '<div class="row" style="justify-content:space-between;margin-top:8px">'+
+          '<a class="btn" href="#/customization">'+t("avatarTitle")+'</a>'+
+          '<a class="btn" href="#/store">'+t("storeTitle")+'</a>'+
+        '</div>'+
+      '</div>'+
+      '<button class="btn cta" id="toLobby" style="width:100%">'+t("playNow")+'</button>';
 
-    var modes = [
-      {id:"quick", name:"Quick Match", playable:true},
-      {id:"story", name:"Story Adventure", playable:false},
-      {id:"h2h",   name:"Head-to-Head",   playable:false},
-      {id:"race",  name:"Treasure Race",  playable:false},
-      {id:"kb",    name:"Knowledge Bomb", playable:false},
-      {id:"tourn", name:"Tournaments",    playable:false}
-    ];
-    var list = modes.map(function(m){
-      return '<div class="card" style="margin-top:8px"><div class="row" style="justify-content:space-between"><strong>'+m.name+
-             '</strong>'+(m.playable?'<button class="btn cta" data-start-mode="'+m.id+'">'+t("playNow")+'</button>':'<span class="badge">'+t("inProgress")+'</span>')+
-             '</div></div>';
-    }).join("");
-
-    return wrapPhone(
-      screen(t("modesTitle"),
-        '<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">'+
-          '<label class="kbd" style="flex:1">'+t("category")+'<select id="selCat" style="width:100%;margin-top:4px">'+catOpts+'</select></label>'+
-          '<label class="kbd" style="flex:1">'+t("difficulty")+'<select id="selDiff" style="width:100%;margin-top:4px">'+diffOpts+'</select></label>'+
-          '<label class="kbd" style="flex:1">'+t("rounds")+'<select id="selRounds" style="width:100%;margin-top:4px">'+roundsOpts+'</select></label>'+
-        '</div>'+ list
-      )
-    );
+    return wrapPhone(screen(t("modesTitle"), body));
   }
   function wireModes(){
-    var cSel=$("#selCat"); if (cSel) cSel.addEventListener("change", function(e){ state.filters.category=e.target.value||"any"; });
-    var dSel=$("#selDiff"); if (dSel) dSel.addEventListener("change", function(e){ state.filters.difficulty=e.target.value||"any"; });
-    var rSel=$("#selRounds"); if (rSel) rSel.addEventListener("change", function(e){ state.rounds = parseInt(e.target.value,10)||6; });
-
-    $all("[data-start-mode]").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        state.currentMode = btn.getAttribute("data-start-mode");
-        state.lobby = {players:2,timeMs:20000,powerups:true};
-        state.questionIx=0; state.score=0; state.streak=0; state._awarded=false;
-
-        // حوض الأسئلة حسب الفلاتر
-        var pool = ALL_QUESTIONS.filter(function(q){
-          var byCat = (state.filters.category==="any") || (q.category===state.filters.category);
-          var byDiff= (state.filters.difficulty==="any") || (q.difficulty===state.filters.difficulty);
-          return byCat && byDiff;
-        });
-        if (!pool.length) pool = ALL_QUESTIONS.slice();
-
-        // عدد الجولات
-        var n = Math.max(1, Math.min(state.rounds, pool.length));
-        var picked = [];
-
-        // إن كانت "الكل" للاثنين، ابنِ توليفة منوعة (روتيشن على التصنيفات)
-        if (state.filters.category==="any" && state.filters.difficulty==="any"){
-          var byCat = {};
-          for (var i=0;i<pool.length;i++){
-            var c = pool[i].category || "general";
-            (byCat[c]||(byCat[c]=[])).push(pool[i]);
-          }
-          Object.keys(byCat).forEach(function(k){ byCat[k] = shuffle(byCat[k]); });
-          var cats = shuffle(Object.keys(byCat));
-          while (picked.length < n && cats.length){
-            for (var ci=0; ci<cats.length && picked.length<n; ci++){
-              var cc = cats[ci], arr = byCat[cc];
-              if (arr.length) picked.push(arr.pop());
-            }
-            cats = cats.filter(function(c){ return byCat[c].length; });
-          }
-          if (picked.length < n){
-            var rest = shuffle(pool.filter(function(q){ return picked.indexOf(q)===-1; }));
-            Array.prototype.push.apply(picked, rest.slice(0, n-picked.length));
-          }
-        } else {
-          picked = shuffle(pool).slice(0, n);
-        }
-
-        QUESTIONS = picked;
-        Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
-
-        location.hash="#/lobby";
-      });
-    });
+    var sc=$("#selCat"); if(sc) sc.addEventListener("change", function(e){ state.settings.category=e.target.value; persistSettings(); });
+    var sd=$("#selDiff"); if(sd) sd.addEventListener("change", function(e){ state.settings.difficulty=e.target.value; persistSettings(); });
+    var sr=$("#selRounds"); if(sr) sr.addEventListener("change", function(e){ state.settings.rounds=parseInt(e.target.value,10); persistSettings(); });
+    var go=$("#toLobby"); if(go) go.addEventListener("click", function(){ location.hash="#/lobby"; });
   }
 
   function renderLobby(){
     return wrapPhone(screen(t("lobbyTitle"),
       '<div class="card">'+
-        '<div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap">'+
-          '<div><span class="badge">'+t("mode")+'</span> <strong>'+(state.currentMode||"—")+'</strong></div>'+
-          '<div class="badge">'+t("players")+': '+state.lobby.players+'</div>'+
-          '<div class="badge">'+t("category")+': '+(state.filters.category||"any")+'</div>'+
-          '<div class="badge">'+t("difficulty")+': '+(state.filters.difficulty||"any")+'</div>'+
-          '<div class="badge">'+t("rounds")+': '+state.rounds+'</div>'+
+        '<div class="row" style="justify-content:space-between">'+
+          '<div><span class="badge">'+t("category")+'</span> <strong>'+ (state.settings.category==="all"?t("all"):state.settings.category) +'</strong></div>'+
+          '<div><span class="badge">'+t("difficulty")+'</span> <strong>'+ (state.settings.difficulty==="all"?t("all"):state.settings.difficulty) +'</strong></div>'+
         '</div>'+
         '<div class="row" style="margin-top:8px;gap:8px">'+
-          '<label class="kbd" style="flex:1)">'+t("players")+
-            '<select id="selPlayers" style="width:100%;margin-top:4px">'+
-              '<option value="2" '+(state.lobby.players===2?'selected':'')+'>2</option>'+
-              '<option value="3" '+(state.lobby.players===3?'selected':'')+'>3</option>'+
-              '<option value="4" '+(state.lobby.players===4?'selected':'')+'>4</option>'+
+          '<label class="kbd" style="flex:1">'+t("rounds")+': '+
+            '<select id="selRounds2" style="width:100%;margin-top:4px">'+
+              [5,6,8,10,12,15,20].map(function(n){return '<option value="'+n+'" '+(state.settings.rounds===n?'selected':'')+'>'+n+'</option>';}).join("")+
             '</select>'+
           '</label>'+
-          '<label class="kbd" style="flex:1)">'+t("timePerQ")+
+          '<label class="kbd" style="flex:1">'+t("timePerQ")+
             '<select id="selTime" style="width:100%;margin-top:4px">'+
               '<option value="10000" '+(state.lobby.timeMs===10000?'selected':'')+'>10s</option>'+
               '<option value="20000" '+(state.lobby.timeMs===20000?'selected':'')+'>20s</option>'+
@@ -331,9 +226,8 @@
             '</select>'+
           '</label>'+
         '</div>'+
-        '<div class="row" style="margin-top:8px;justify-content:space-between;gap:8px;flex-wrap:wrap">'+
-          '<div class="kbd">'+t("powerups")+': <button id="btnPower" class="btn" style="margin-inline-start:6px)">'+(state.lobby.powerups?t("on"):t("off"))+'</button></div>'+
-          '<div class="kbd">'+t("sound")+': <button id="btnSound" class="btn" style="margin-inline-start:6px)">'+(settings.sound?t("on"):t("off"))+'</button></div>'+
+        '<div class="row" style="margin-top:8px;justify-content:space-between">'+
+          '<div class="kbd">'+t("powerups")+': <button id="btnPower" class="btn" style="margin-inline-start:6px">'+(state.lobby.powerups?t("on"):t("off"))+'</button></div>'+
           '<a class="btn" href="#/modes">'+t("modesTitle")+'</a>'+
         '</div>'+
       '</div>'+
@@ -345,75 +239,122 @@
     ));
   }
   function wireLobby(){
-    var sp=$("#selPlayers"); if (sp) sp.addEventListener("change", function(e){ state.lobby.players=parseInt(e.target.value,10); render(); });
-    var st=$("#selTime");    if (st) st.addEventListener("change",  function(e){ state.lobby.timeMs=parseInt(e.target.value,10); });
-    var bp=$("#btnPower");   if (bp) bp.addEventListener("click",   function(){ state.lobby.powerups=!state.lobby.powerups; render(); });
-    var bs=$("#btnStart");   if (bs) bs.addEventListener("click",   function(ev){ ev.preventDefault(); ev.stopPropagation(); state.questionIx=0; state.score=0; state.streak=0; state._awarded=false; state._qAdvanced=false; state.route="question"; location.hash="#/question"; });
-    var bsnd=$("#btnSound"); if (bsnd) bsnd.addEventListener("click", function(){ settings.sound=!settings.sound; saveSettings(); render(); });
+    var sr2=$("#selRounds2"); if (sr2) sr2.addEventListener("change", function(e){ state.settings.rounds=parseInt(e.target.value,10); persistSettings(); });
+    var st=$("#selTime");    if (st)  st.addEventListener("change",  function(e){ state.lobby.timeMs=parseInt(e.target.value,10); });
+    var bp=$("#btnPower");   if (bp)  bp.addEventListener("click",   function(){ state.lobby.powerups=!state.lobby.powerups; render(); });
+    var bs=$("#btnStart");   if (bs)  bs.addEventListener("click",   startMatch);
   }
 
-  // ===== Question screen =====
+  // ===== Build question bank according to filters =====
+  function buildQSet(){
+    var all = state.questions || [];
+    if (!all.length){ state.qSet=[]; return; }
+    var pool = all.filter(function(q){
+      var okCat = (state.settings.category==="all") || (q.category===state.settings.category);
+      var okDiff= (state.settings.difficulty==="all") || (q.difficulty===state.settings.difficulty);
+      return okCat && okDiff;
+    });
+    if (!pool.length){ pool = all.slice(); } // fallback: لا تطابق—نستخدم الكل
+    shuffle(pool);
+    var rounds = Math.max(1, Math.min(state.settings.rounds||6, pool.length));
+    var indices = [];
+    for (var i=0;i<rounds;i++){
+      var q = pool[i];
+      var ix = all.indexOf(q);
+      if (ix>=0) indices.push(ix);
+    }
+    state.qSet = indices;
+  }
+
+  function startMatch(){
+    state.currentMode = "quick";
+    state.questionIx=0; state.score=0; state.streak=0; state._awarded=false;
+    state._isNewQuestion = true; state.hintMaskOn=false;
+    buildQSet();
+    location.hash="#/question";
+  }
+
+  // ===== Gameplay =====
+  function mmss(ms){ var s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2); }
+
+  function getCurrentQuestion(){
+    var idx = state.qSet[state.questionIx];
+    var q = (state.questions || [])[idx] || null;
+    return q;
+  }
+
   function renderQuestion(){
-    if (state._remaining !== state.lobby.timeMs) state._remaining = state.lobby.timeMs;
-    state._frozen=false; state._shieldActive=false;
+    if (!state.qSet.length){
+      return wrapPhone(screen(t("questionTitle"),
+        '<div class="card">'+t("noQuestions")+' <div style="margin-top:8px"><a class="btn" href="#/modes">'+t("modes")+'</a></div></div>'
+      ));
+    }
+    var q = getCurrentQuestion();
+    if (!q){
+      return wrapPhone(screen(t("questionTitle"), '<div class="card">—</div>'));
+    }
+    var prompt = (lang==="ar") ? q.ar.prompt : q.en.prompt;
+    var answers = (lang==="ar") ? q.ar.answers : q.en.answers;
 
-    var q = QUESTIONS[ Q_ORDER[state.questionIx] ];
-    var prompt = (lang==="ar")? q.prompt_ar : q.prompt_en;
-    var opts = q.answers.map(function(a,i){ return {txt:(lang==="ar"?a.ar:a.en), ok:!!a.correct, i:i}; });
-    opts = shuffle(opts);
-
-    var powerRow = '';
-    if (state.lobby.powerups){
-      powerRow =
-        '<div class="row" style="gap:6px;margin-bottom:6px;flex-wrap:wrap">'+
-          '<button class="btn" id="pHint">💡 '+t("hint")+' (-30 '+t("coins")+')</button>'+
-          '<button class="btn" id="pFreeze">⏸ '+t("freeze")+' (-40 '+t("coins")+')</button>'+
-          '<button class="btn" id="pShield">🛡 '+t("shield")+' (-50 '+t("coins")+')</button>'+
-        '</div>';
+    if (state.hintMaskOn){
+      prompt = maskDigits(prompt);
+      answers = answers.map(function(a){ return { text: maskDigits(a.text), correct: !!a.correct }; });
     }
 
-    return wrapPhone(screen(t("questionTitle"),
+    var opts = shuffle(answers.slice()).map(function(a,i){
+      return { txt:a.text, ok:!!a.correct, i:i };
+    });
+
+    var topRow =
       '<div class="row" style="justify-content:space-between;margin-bottom:8px">'+
         '<span class="kbd">'+t("score")+': '+state.score+'</span>'+
         '<span class="kbd">'+t("streak")+': '+state.streak+'</span>'+
-      '</div>'+
-      powerRow+
+      '</div>';
+
+    var actionsRow =
+      '<div class="row" style="margin-top:8px;justify-content:space-between;gap:8px">'+
+        '<button class="btn" id="btnHint">'+t("hint")+'</button>'+
+        '<a class="btn" href="#/lobby">⟵ '+t("lobby")+'</a>'+
+        '<button class="btn" id="nextBtn">'+t("skip")+'</button>'+
+      '</div>';
+
+    return wrapPhone(screen(t("questionTitle"),
+      topRow+
       '<div class="h2" style="margin-bottom:8px">'+prompt+'</div>'+
       '<div style="display:flex;flex-direction:column;gap:8px">'+
-        opts.map(function(o){ return '<button class="opt btn" style="width:100%;text-align:start" data-ix="'+o.i+'" data-ok="'+(o.ok?'1':'0')+'">'+o.txt+'</button>'; }).join("")+
+        opts.map(function(o){ return '<button class="opt btn" style="width:100%;text-align:start" data-ok="'+(o.ok?'1':'0')+'">'+o.txt+'</button>'; }).join("")+
       '</div>'+
-      '<div class="meta" style="margin-top:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
-        '<span class="badge">Round '+(state.questionIx+1)+'/'+QUESTIONS.length+'</span>'+
+      '<div class="meta" style="margin-top:10px">'+
+        '<span class="badge">Round '+(state.questionIx+1)+'/'+(state.qSet.length||0)+'</span>'+
         '<span class="badge" id="timer">'+mmss(state._remaining)+'</span>'+
-        (state.lobby.powerups?'<span class="badge" id="pfreeze" style="display:none">⏸</span><span class="badge" id="pshield" style="display:none">🛡</span>':'')+
       '</div>'+
-      '<div class="row" style="margin-top:8px;justify-content:space-between">'+
-        '<a class="btn" href="#/lobby">⟵ '+t("lobby")+'</a>'+
-        '<button class="btn" id="nextBtn">'+t("next")+'</button>'+
-      '</div>'
+      actionsRow
     ));
   }
+
   function startTimer(){
     clearInterval(state._timerId);
-    state._remaining = state.lobby.timeMs;
-    var timerEl = $("#timer");
+    if (state._isNewQuestion) state._remaining = state.lobby.timeMs;
+    state._isNewQuestion = false;
+
     state._timerId = setInterval(function(){
       if (state._qAdvanced) { clearInterval(state._timerId); return; }
-      if (state._frozen){ if (timerEl) timerEl.textContent = mmss(state._remaining); return; }
       state._remaining -= 100;
+      var timerEl = $("#timer");
       if (timerEl) timerEl.textContent = mmss(state._remaining);
       if (state._remaining <= 0){
         clearInterval(state._timerId);
-        state.streak = state._shieldActive ? state.streak : 0;
-        state._shieldActive = false;
-        state._qAdvanced = true;
+        state.streak = 0; state._qAdvanced = true;
         setTimeout(nextStep, 10);
       }
     }, 100);
   }
+
   function nextStep(){
-    if (state.questionIx < Q_ORDER.length - 1) {
+    if (state.questionIx < state.qSet.length - 1) {
       state.questionIx++;
+      state._isNewQuestion = true;
+      state.hintMaskOn = false;
       if (state.route === "question") render();
       else location.hash = "#/question";
     } else {
@@ -421,47 +362,8 @@
     }
   }
 
-  function useCoins(amount){
-    if (state.wallet.coins < amount){ alert(t("notEnough")); return false; }
-    state.wallet.coins -= amount; saveWallet(); return true;
-  }
-
-  function wirePowerups(){
-    var freezeBadge = $("#pfreeze");
-    var shieldBadge = $("#pshield");
-
-    var btnH=$("#pHint");
-    if (btnH) btnH.addEventListener("click", function(){
-      if (!useCoins(30)) return;
-      var wrong = $all(".opt").filter(function(b){
-        return b.getAttribute("data-ok")==="0" && !b.disabled && b.style.display!=="none";
-      });
-      if (!wrong.length) return;
-      var pick = wrong[Math.floor(Math.random()*wrong.length)];
-      pick.setAttribute("aria-hidden","true");
-      pick.style.display = "none";
-    });
-
-    var btnF=$("#pFreeze");
-    if (btnF) btnF.addEventListener("click", function(){
-      if (state._frozen) return;
-      if (!useCoins(40)) return;
-      state._frozen = true;
-      if (freezeBadge) freezeBadge.style.display = "inline-block";
-      setTimeout(function(){ state._frozen=false; if (freezeBadge) freezeBadge.style.display="none"; }, 5000);
-    });
-
-    var btnS=$("#pShield");
-    if (btnS) btnS.addEventListener("click", function(){
-      if (state._shieldActive) return;
-      if (!useCoins(50)) return;
-      state._shieldActive = true;
-      if (shieldBadge) shieldBadge.style.display = "inline-block";
-    });
-  }
-
   function wireQuestion(){
-    state._qAdvanced=false; startTimer(); wirePowerups();
+    state._qAdvanced=false; startTimer();
 
     $all(".opt").forEach(function(btn){
       btn.addEventListener("click", function(){
@@ -471,27 +373,31 @@
         btn.classList.add(ok?"correct":"wrong");
         var nb=$("#nextBtn"); if (nb) nb.textContent = ok ? t("correct") : t("wrong");
         state._qAdvanced=true;
-
         if (ok){
-          snd("ok");
           var bonus = Math.ceil(state._remaining/1000)*5;
           state.score += 100 + bonus; state.streak += 1;
-        } else {
-          snd("bad");
-          if (!state._shieldActive) state.streak = 0;
-          state._shieldActive = false;
-        }
+        } else { state.streak = 0; }
         setTimeout(nextStep, 700);
       });
     });
+
+    var hb=$("#btnHint");
+    if (hb) hb.addEventListener("click", function(){
+      if (state._qAdvanced || state.hintMaskOn) return;
+      state.hintMaskOn = true;
+      var prevNew = state._isNewQuestion;
+      state._isNewQuestion = false;
+      render();
+      state._isNewQuestion = prevNew;
+    });
+
     var nb=$("#nextBtn");
     if (nb) nb.addEventListener("click", function(){
-      if(!state._qAdvanced){ if (!state._shieldActive) state.streak=0; state._shieldActive=false; state._qAdvanced=true; }
+      if (!state._qAdvanced){ state.streak=0; state._qAdvanced=true; }
       nextStep();
     });
   }
 
-  // ===== Results =====
   function renderResults(){
     var coinsReward = Math.max(0, Math.round(state.score*0.10));
     return wrapPhone(screen(t("resultsTitle"),
@@ -500,7 +406,7 @@
       '<div class="card"><strong>'+t("reward")+':</strong> <span class="coin"></span> '+coinsReward+'</div>'+
       '<div class="row" style="margin-top:12px">'+
         '<a class="btn cta" id="claimBtn" style="flex:1">'+t("again")+'</a>'+
-        '<a class="btn" href="#/modes" style="flex:1)">'+t("modesTitle")+'</a>'+
+        '<a class="btn" href="#/modes" style="flex:1">'+t("modes")+'</a>'+
       '</div>'
     ));
   }
@@ -509,9 +415,7 @@
     if (cb) cb.addEventListener("click", function(){
       var coinsReward = Math.max(0, Math.round(state.score*0.10));
       if (!state._awarded){ state.wallet.coins += coinsReward; saveWallet(); state._awarded = true; }
-      state.questionIx=0; state.score=0; state.streak=0; state._qAdvanced=false;
-      Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
-      location.hash="#/question";
+      startMatch();
     });
   }
 
@@ -541,13 +445,16 @@
       '<rect x="64" y="200" width="128" height="28" rx="10" fill="url(#g2)" stroke="#a66f00" stroke-width="6"/>'+
     '</svg>';
   }
+
   function renderCustomization(){
-    var c=state.content; var ownedMap={}; state.owned.forEach(function(id){ownedMap[id]=1;});
-    var char=(c.characters&&c.characters[0]) || {name_ar:"تروفي",name_en:"Trophy",default:{colorway:"Gold"}};
+    var c=state.content || {characters:[{name_ar:"",name_en:"",default:{colorway:""}}], cosmetics:[]};
+    var ownedMap={}; state.owned.forEach(function(id){ownedMap[id]=1;});
+    var char=c.characters[0] || {name_ar:"",name_en:"",default:{colorway:""}};
     var outfits=c.cosmetics||[];
     var equippedBadges = Object.keys(state.equipped).map(function(slot){
       var id=state.equipped[slot]; return id?'<span class="badge">'+slot+': '+id.replace(/_/g," ")+'</span>':'';
     }).filter(Boolean).join(" ") || '<span class="badge">'+t("nothingEquipped")+'</span>';
+
     function item(o){
       var isOwned=!!ownedMap[o.id]; var isEq=(state.equipped[o.slot]===o.id);
       return '<div class="card store-item" style="width:100%">'+
@@ -559,16 +466,17 @@
                  '<span class="badge">'+t("owned")+'</span><button class="btn cta" data-equip="'+o.id+'" data-slot="'+o.slot+'">'+t("equip")+'</button>')
         )+'</div></div>';
     }
+
     return wrapPhone(screen(t("avatarTitle"),
       '<div class="card avatar" style="width:100%">'+
         '<div class="preview">'+previewSVG()+'</div>'+
-        '<div><div><strong>'+((lang==="ar")?char.name_ar:char.name_en)+' — '+(char.default&&char.default.colorway?char.default.colorway:"")+'</strong></div>'+
+        '<div><div><strong>'+((lang==="ar")?char.name_ar:char.name_en)+' — '+(char.default?char.default.colorway:"")+'</strong></div>'+
         '<div class="row" style="margin-top:6px">'+equippedBadges+'</div></div>'+
       '</div>'+
-      outfits.map(item).join("")+
+      (outfits.map(item).join("") || '<div class="card">'+t("storeTitle")+'</div>')+
       '<div class="row" style="margin-top:12px">'+
         '<div class="kbd" style="flex:1;text-align:center">'+t("coins")+': '+state.wallet.coins+'</div>'+
-        '<div class="kbd" style="flex:1;text-align:center">'+t("gems")+': '+state.wallet.gems+'</div>'+
+        '<div class="kbd" style="flex:1;text-align:center)">'+t("gems")+': '+state.wallet.gems+'</div>'+
       '</div>'
     ));
   }
@@ -578,8 +486,6 @@
         var id=btn.getAttribute("data-buy");
         var item=((state.content&&state.content.cosmetics)||[]).find(function(x){return x.id===id;}) || {};
         var price=item.price || {};
-        var ask = (!price || (!price.coins && !price.gems)) ? true : confirm(t("confirmBuy")+" — "+fmtPrice(price));
-        if (!ask) return;
         if (price.coins && state.wallet.coins<price.coins) { alert(t("notEnough")); return; }
         if (price.gems  && state.wallet.gems <price.gems ) { alert(t("notEnough")); return; }
         if (price.coins) state.wallet.coins-=price.coins;
@@ -595,14 +501,15 @@
     });
   }
 
-  // ===== Store page =====
   function renderStore(){
-    var c = state.content || {store:{daily:[],weekly:[]},cosmetics:[]};
+    var c = state.content || {cosmetics:[], store:{daily:[], weekly:[]}};
     var owned = new Set(state.owned);
+
     var items = [].concat(
       (c.store.daily||[]).map(function(id){ return (c.cosmetics||[]).find(function(x){ return x.id===id; }); }),
       (c.store.weekly||[]).map(function(id){ return (c.cosmetics||[]).find(function(x){ return x.id===id; }); })
     ).filter(Boolean);
+
     function card(o){
       var isOwned = owned.has(o.id);
       var isEq = (state.equipped[o.slot] === o.id);
@@ -623,54 +530,48 @@
         '</div>'
       );
     }
-    return wrapPhone(
-      screen(t("storeTitle"), items.map(card).join("") ) +
+
+    var footer =
       '<div class="row" style="margin-top:12px">'+
-        '<div class="kbd" style="flex:1;text-align:center)">'+t("coins")+': '+state.wallet.coins+'</div>'+
+        '<div class="kbd" style="flex:1;text-align:center">'+t("coins")+': '+state.wallet.coins+'</div>'+
         '<div class="kbd" style="flex:1;text-align:center)">'+t("gems")+': '+state.wallet.gems+'</div>'+
-      '</div>'
-    );
+      '</div>';
+
+    return wrapPhone(screen(t("storeTitle"), (items.map(card).join("")||'<div class="card">—</div>') ) + footer);
   }
   function wireStore(){
     $all("[data-store-buy]").forEach(function(btn){
       btn.addEventListener("click", function(){
         var id = btn.getAttribute("data-store-buy");
-        var c = state.content || {cosmetics:[]};
-        var item = (c.cosmetics||[]).find(function(x){ return x.id===id; }) || {};
+        var item = ((state.content&&state.content.cosmetics)||[]).find(function(x){ return x.id===id; }) || {};
         var price = item.price || {};
-        var ask = (!price || (!price.coins && !price.gems)) ? true : confirm(t("confirmBuy")+" — "+fmtPrice(price));
-        if (!ask) return;
         if (price.coins && state.wallet.coins < price.coins){ alert(t("notEnough")); return; }
         if (price.gems  && state.wallet.gems  < price.gems ){ alert(t("notEnough")); return; }
         if (price.coins) state.wallet.coins -= price.coins;
         if (price.gems ) state.wallet.gems  -= price.gems;
-        state.owned.push(id);
-        saveOwned(); saveWallet();
-        render();
+        state.owned.push(id); saveOwned(); saveWallet(); render();
       });
     });
     $all("[data-store-equip]").forEach(function(btn){
       btn.addEventListener("click", function(){
         var id = btn.getAttribute("data-store-equip");
         var slot = btn.getAttribute("data-slot");
-        if (state.owned.indexOf(id) === -1){ alert(t("needOwn")); return; }
-        state.equipped[slot] = id;
-        saveEquipped();
-        render();
+        if (state.owned.indexOf(id) === -1){ alert(t("notEnough")); return; }
+        state.equipped[slot] = id; saveEquipped(); render();
       });
     });
   }
 
-  // ===== mark active tab =====
+  // ===== render switch =====
   function markActiveTab(){
     var r = state.route || "splash";
     $all("header .tabs a").forEach(function(a){
       var isActive = (a.getAttribute("href") === "#/"+r);
-      if (isActive) a.classList.add("active"); else a.classList.remove("active");
+      if (isActive) a.classList.add("active");
+      else a.classList.remove("active");
     });
   }
 
-  // ===== render =====
   function render(){
     var app = getApp();
     loadContent(function(){
@@ -678,7 +579,7 @@
       var html="";
       switch(state.route){
         case "splash":    html = renderSplash();        break;
-        case "home":      html = renderHome();          break;
+        case "home":      html = renderModes();         break; // اختصاراً
         case "modes":     html = renderModes();         break;
         case "lobby":     html = renderLobby();         break;
         case "question":  html = renderQuestion();      break;
@@ -689,15 +590,13 @@
       }
       app.innerHTML = html;
       if (typeof markActiveTab === "function") markActiveTab();
-
       switch(state.route){
-        case "home":          $("#btnReset") && $("#btnReset").addEventListener("click", function(){ localStorage.clear(); location.reload(); }); break;
-        case "modes":         wireModes();         break;
-        case "lobby":         wireLobby();         break;
-        case "question":      wireQuestion();      break;
-        case "results":       wireResults();       break;
-        case "customization": wireCustomization(); break;
-        case "store":         wireStore();         break;
+        case "modes":        wireModes();         break;
+        case "lobby":        wireLobby();         break;
+        case "question":     wireQuestion();      break;
+        case "results":      wireResults();       break;
+        case "customization":wireCustomization(); break;
+        case "store":        wireStore();         break;
       }
     });
   }
