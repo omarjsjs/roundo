@@ -22,3 +22,105 @@
     "starter_bundle": {"items":["headband_red"], "price":{"coins":0}}
   }
 }
+{
+  "characters": [
+    { "name_ar": "تروفي", "name_en": "Trophy", "default": { "colorway": "Gold" } }
+  ],
+  "cosmetics": [
+    { "id": "headband_red",  "slot": "headband", "price": { "coins": 200 } },
+    { "id": "scarf_teal",    "slot": "scarf",    "price": { "coins": 180 } },
+    { "id": "visor_purple",  "slot": "visor",    "price": { "coins": 150 } },
+    { "id": "cape_violet",   "slot": "cape",     "price": { "gems": 5 } },
+    { "id": "charm_sun",     "slot": "charm",    "price": null }
+  ],
+  "store": {
+    "daily":  ["headband_red","scarf_teal","visor_purple"],
+    "weekly": ["cape_violet","charm_sun"]
+  },
+  "questions": [
+    {
+      "id": 1, "category": "general", "difficulty": "easy",
+      "ar": { "prompt": "ما عاصمة فرنسا؟", "answers": [
+        {"text":"باريس","correct":true},{"text":"روما"},{"text":"مدريد"},{"text":"برلين"} ]},
+      "en": { "prompt": "What is the capital of France?", "answers": [
+        {"text":"Paris","correct":true},{"text":"Rome"},{"text":"Madrid"},{"text":"Berlin"} ]}
+    },
+    {
+      "id": 2, "category": "math", "difficulty": "easy",
+      "ar": { "prompt": "٢ + ٢ = ؟", "answers": [
+        {"text":"٣"},{"text":"٤","correct":true},{"text":"٥"},{"text":"٦"} ]},
+      "en": { "prompt": "2 + 2 = ?", "answers": [
+        {"text":"3"},{"text":"4","correct":true},{"text":"5"},{"text":"6"} ]}
+    },
+    {
+      "id": 3, "category": "science", "difficulty": "easy",
+      "ar": { "prompt": "أكبر كوكب في المجموعة الشمسية؟", "answers": [
+        {"text":"المشتري","correct":true},{"text":"زحل"},{"text":"الأرض"},{"text":"المريخ"} ]},
+      "en": { "prompt": "Largest planet in the solar system?", "answers": [
+        {"text":"Jupiter","correct":true},{"text":"Saturn"},{"text":"Earth"},{"text":"Mars"} ]}
+    },
+    {
+      "id": 4, "category": "web", "difficulty": "easy",
+      "ar": { "prompt": "لغة تنسيق صفحات الويب؟", "answers": [
+        {"text":"HTML"},{"text":"CSS","correct":true},{"text":"SQL"},{"text":"C++"} ]},
+      "en": { "prompt": "The language used to style webpages is?", "answers": [
+        {"text":"HTML"},{"text":"CSS","correct":true},{"text":"SQL"},{"text":"C++"} ]}
+    },
+    {
+      "id": 5, "category": "geography", "difficulty": "medium",
+      "ar": { "prompt": "أطول نهر في العالم؟", "answers": [
+        {"text":"الأمازون","correct":true},{"text":"النيل"},{"text":"اليانغتسي"},{"text":"الدانوب"} ]},
+      "en": { "prompt": "Longest river in the world?", "answers": [
+        {"text":"Amazon","correct":true},{"text":"Nile"},{"text":"Yangtze"},{"text":"Danube"} ]}
+    },
+    {
+      "id": 6, "category": "uae", "difficulty": "easy",
+      "ar": { "prompt": "عملة الإمارات العربية المتحدة؟", "answers": [
+        {"text":"اليورو"},{"text":"الدرهم","correct":true},{"text":"الدولار"},{"text":"الريال"} ]},
+      "en": { "prompt": "The currency of the UAE?", "answers": [
+        {"text":"Euro"},{"text":"Dirham","correct":true},{"text":"Dollar"},{"text":"Riyal"} ]}
+    },
+    {
+      "id": 7, "category": "math", "difficulty": "medium",
+      "ar": { "prompt": "الجذر التربيعي لـ 144 هو؟", "answers": [
+        {"text":"10"},{"text":"12","correct":true},{"text":"14"},{"text":"16"} ]},
+      "en": { "prompt": "Square root of 144?", "answers": [
+        {"text":"10"},{"text":"12","correct":true},{"text":"14"},{"text":"16"} ]}
+    },
+    {
+      "id": 8, "category": "science", "difficulty": "medium",
+      "ar": { "prompt": "العنصر الكيميائي رمزه Fe هو؟", "answers": [
+        {"text":"الحديد","correct":true},{"text":"الفضة"},{"text":"النحاس"},{"text":"الصفيح"} ]},
+      "en": { "prompt": "Chemical element with symbol Fe?", "answers": [
+        {"text":"Iron","correct":true},{"text":"Silver"},{"text":"Copper"},{"text":"Tin"} ]}
+    },
+    {
+      "id": 9, "category": "general", "difficulty": "medium",
+      "ar": { "prompt": "كم عدد القارات؟", "answers": [
+        {"text":"خمس"},{"text":"ست"},{"text":"سبع","correct":true},{"text":"ثمان"} ]},
+      "en": { "prompt": "How many continents are there?", "answers": [
+        {"text":"Five"},{"text":"Six"},{"text":"Seven","correct":true},{"text":"Eight"} ]}
+    },
+    {
+      "id": 10, "category": "geography", "difficulty": "easy",
+      "ar": { "prompt": "عاصمة اليابان؟", "answers": [
+        {"text":"أوساكا"},{"text":"طوكيو","correct":true},{"text":"كيوتو"},{"text":"ناغويا"} ]},
+      "en": { "prompt": "Capital of Japan?", "answers": [
+        {"text":"Osaka"},{"text":"Tokyo","correct":true},{"text":"Kyoto"},{"text":"Nagoya"} ]}
+    },
+    {
+      "id": 11, "category": "web", "difficulty": "medium",
+      "ar": { "prompt": "اختصار DOM يشير إلى؟", "answers": [
+        {"text":"Document Object Model","correct":true},{"text":"Data Object Map"},{"text":"Dynamic Output Mode"},{"text":"Display Object Manager"} ]},
+      "en": { "prompt": "DOM stands for?", "answers": [
+        {"text":"Document Object Model","correct":true},{"text":"Data Object Map"},{"text":"Dynamic Output Mode"},{"text":"Display Object Manager"} ]}
+    },
+    {
+      "id": 12, "category": "uae", "difficulty": "medium",
+      "ar": { "prompt": "أعلى قمة جبلية في الإمارات؟", "answers": [
+        {"text":"جبل جيس","correct":true},{"text":"جبل علي"},{"text":"حفيت"},{"text":"ظنة"} ]},
+      "en": { "prompt": "Highest mountain peak in the UAE?", "answers": [
+        {"text":"Jebel Jais","correct":true},{"text":"Jebel Ali"},{"text":"Hafeet"},{"text":"Dhanna"} ]}
+    }
+  ]
+}
