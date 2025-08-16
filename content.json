@@ -1,0 +1,24 @@
+{
+  "characters": [
+    {
+      "id": "trophy",
+      "name_en": "Trophy",
+      "name_ar": "كأس",
+      "colorways": ["gold","silver","obsidian"],
+      "expressions": ["neutral","happy","determined","shocked","wink","smirk"],
+      "default": {"colorway":"gold","expression":"happy"}
+    }
+  ],
+  "cosmetics": [
+    {"id":"headband_red","slot":"headband","rarity":"common","price":{"coins":600},"appliesTo":["trophy"]},
+    {"id":"scarf_teal","slot":"scarf","rarity":"rare","price":{"coins":1200},"appliesTo":["trophy"]},
+    {"id":"visor_purple","slot":"visor","rarity":"rare","price":{"gems":80},"appliesTo":["trophy"]},
+    {"id":"cape_gold","slot":"cape","rarity":"epic","price":{"gems":120},"appliesTo":["trophy"]},
+    {"id":"medal_charm","slot":"charm","rarity":"rare","price":{"coins":900},"appliesTo":["trophy"]}
+  ],
+  "store": {
+    "daily": ["headband_red","scarf_teal"],
+    "weekly": ["visor_purple","cape_gold","medal_charm"],
+    "starter_bundle": {"items":["headband_red"], "price":{"coins":0}}
+  }
+}
