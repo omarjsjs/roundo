@@ -1,5 +1,6 @@
 /* Roundo v16 — ES5, content.json-driven questions + lobby filters (rounds/categories/difficulty)
-   + new trophy avatar PNG base, robust routing & event wiring */
+   + avatar PNG base, robust routing & event wiring
+   + localized mode names, Arabic category labels, power-up icons */
 (function(){
   'use strict';
 
@@ -16,8 +17,7 @@
         score:"النقاط", streak:"سلسلة", reward:"المكافأة",
         startMatch:"ابدأ المباراة", timePerQ:"الوقت لكل سؤال", powerups:"القدرات", on:"تشغيل", off:"إيقاف",
         mode:"النمط", you:"أنت", rounds:"الجولات", categories:"التصنيفات", difficulty:"الصعوبة",
-        all:"الكل", easy:"سهل", medium:"متوسط", hard:"صعب",
-        hint:"مساعدة 50/50", freeze:"إيقاف الوقت", shield:"درع", usedUp:"تم الاستخدام"},
+        all:"الكل", easy:"سهل", medium:"متوسط", hard:"صعب"},
     en:{app:"Roundo",badge:"Prototype",home:"Home",modes:"Game Modes",lobby:"Lobby",store:"Store",
         splashTitle:"Splash",quickPlay:"Quick Play",playNow:"Play Now",
         modesTitle:"Game Modes",lobbyTitle:"Lobby",storeTitle:"Store",avatarTitle:"My Avatar",
@@ -29,9 +29,22 @@
         score:"Score", streak:"Streak", reward:"Reward",
         startMatch:"Start Match", timePerQ:"Time per question", powerups:"Power-ups", on:"On", off:"Off",
         mode:"Mode", you:"You", rounds:"Rounds", categories:"Categories", difficulty:"Difficulty",
-        all:"All", easy:"Easy", medium:"Medium", hard:"Hard",
-        hint:"Hint 50/50", freeze:"Freeze", shield:"Shield", usedUp:"Used up"}
+        all:"All", easy:"Easy", medium:"Medium", hard:"Hard"}
   };
+
+  // ===== localized labels for modes & categories (عرض بالعربي مع الحفاظ على مفاتيح إنجليزية داخلياً) =====
+  var MODE_NAMES={
+    ar:{quick:"مباراة سريعة",story:"مغامرة قصصية",h2h:"وجهاً لوجه",race:"سباق الكنز",kb:"قنبلة المعرفة",tourn:"البطولات"},
+    en:{quick:"Quick Match",story:"Story Adventure",h2h:"Head-to-Head",race:"Treasure Race",kb:"Knowledge Bomb",tourn:"Tournaments"}
+  };
+  var CAT_LABELS={
+    ar:{math:"الرياضيات",uae:"الإمارات",geography:"الجغرافيا",culture:"الثقافة",history:"التاريخ",web:"الويب",
+        science:"العلوم",general:"عام",movies:"الأفلام",gaming:"الألعاب",sports:"الرياضة"},
+    en:{math:"Math",uae:"UAE",geography:"Geography",culture:"Culture",history:"History",web:"Web",
+        science:"Science",general:"General",movies:"Movies",gaming:"Gaming",sports:"Sports"}
+  };
+  function catLabel(k){ return (CAT_LABELS[lang]&&CAT_LABELS[lang][k])||k; }
+  function modeLabel(id){ return (MODE_NAMES[lang]&&MODE_NAMES[lang][id])||id; }
 
   // ===== helpers =====
   function $(s,r){return (r||document).querySelector(s);}
@@ -55,13 +68,11 @@
     currentMode:null,
     questionIx:0, score:0, streak:0, _awarded:false,
     _qAdvanced:false, _timerId:null, _remaining:20000,
-    lobby:{players:2,timeMs:20000,powerups:true,rounds:6,cats:[],diffs:[]},
-    // القدرات
-    power:{hint:2, freeze:1, shield:1, shieldArmed:false}
+    _shield:0,                                        // للدرع
+    powers:{fifty:2, freeze:1, shield:1},             // عدادات القدرات
+    lobby:{players:2,timeMs:20000,powerups:true,rounds:6,cats:[],diffs:[]}
   };
-  var Q_ALL=[];    // normalized from content.json
-  var Q_ACTIVE=[]; // filtered for the match
-  var Q_ORDER=[];
+  var Q_ALL=[], Q_ACTIVE=[], Q_ORDER=[];
 
   function saveOwned(){localStorage.setItem("roundo_owned",JSON.stringify(state.owned));}
   function saveWallet(){localStorage.setItem("roundo_wallet",JSON.stringify(state.wallet));}
@@ -127,7 +138,6 @@
       .then(function(r){ if(!r.ok) throw new Error("load"); return r.json(); })
       .then(function(json){ state.content=json; normalizeQuestions(); if(cb) cb(); })
       .catch(function(){
-        // fallback minimal
         state.content={
           characters:[{name_ar:"كأس",name_en:"Trophy",default:{colorway:"gold"}}],
           cosmetics:[
@@ -171,20 +181,16 @@
       '<a class="btn" href="#/store" style="width:100%;margin-top:6px">'+t("storeTitle")+'</a>'
     ));
   }
+
+  // === (1) أنماط اللعب — مع تعريب الأسماء ===
   function renderModes(){
-    var modes=[
-      {id:"quick",name:"Quick Match",playable:true},
-      {id:"story",name:"Story Adventure",playable:false},
-      {id:"h2h",name:"Head-to-Head",playable:false},
-      {id:"race",name:"Treasure Race",playable:false},
-      {id:"kb",name:"Knowledge Bomb",playable:false},
-      {id:"tourn",name:"Tournaments",playable:false}
-    ];
+    var modes=[{id:"quick",playable:true},{id:"story"},{id:"h2h"},{id:"race"},{id:"kb"},{id:"tourn"}];
     var list=modes.map(function(m){
+      var playable=!!m.playable;
       return '<div class="card" style="margin-top:8px">'+
         '<div class="row" style="justify-content:space-between;align-items:center">'+
-          '<strong>'+m.name+'</strong>'+
-          (m.playable?'<button class="btn cta" data-start-mode="'+m.id+'">'+t("playNow")+'</button>':'<span class="badge">'+t("inProgress")+'</span>')+
+          '<strong>'+modeLabel(m.id)+'</strong>'+
+          (playable?'<button class="btn cta" data-start-mode="'+m.id+'">'+t("playNow")+'</button>':'<span class="badge">'+t("inProgress")+'</span>')+
         '</div></div>';
     }).join("");
     return wrapPhone(screen(t("modesTitle"),list));
@@ -201,20 +207,9 @@
     });
   }
 
-  // build filter chips
-  function chips(items, activeSet, dataAttr, allowMulti){
-    return items.map(function(it){
-      var active = activeSet.indexOf(it)>=0;
-      return '<button class="btn '+(active?'cta':'')+'" data-'+dataAttr+'="'+it+'">'+it+'</button>';
-    }).join(' ');
-  }
-
   function renderLobby(){
     var cats = unique(Q_ALL,"category");
     var diffs = unique(Q_ALL,"difficulty");
-    var catsLabels = [t("all")].concat(cats);
-    var diffsLabels = [t("all"), t("easy"), t("medium"), t("hard")];
-    var diffKeys = ["all","easy","medium","hard"];
 
     return wrapPhone(screen(t("lobbyTitle"),
       '<div class="card">'+
@@ -248,18 +243,18 @@
           '</div>'+
         '</div>'+
 
+        // === (2) التصنيفات بالعربي ===
         '<div class="card" style="margin-top:10px">'+
           '<div class="h2">'+t("categories")+'</div>'+
           '<div class="row" style="gap:6px;flex-wrap:wrap">'+
             '<button class="btn '+(state.lobby.cats.length===0?'cta':'')+'" data-cat-all="1">'+t("all")+'</button>'+
-            cats.map(function(c){var active=state.lobby.cats.indexOf(c)>=0;return '<button class="btn '+(active?'cta':'')+'" data-cat="'+c+'">'+c+'</button>';}).join(' ')+
+            cats.map(function(c){var active=state.lobby.cats.indexOf(c)>=0;return '<button class="btn '+(active?'cta':'')+'" data-cat="'+c+'">'+catLabel(c)+'</button>';}).join(' ')+
           '</div>'+
         '</div>'+
 
         '<div class="card" style="margin-top:10px">'+
           '<div class="h2">'+t("difficulty")+'</div>'+
           '<div class="row" style="gap:6px;flex-wrap:wrap">'+
-            ['easy','medium','hard'].map(function(d){ return ''; }).join('')+
             '<button class="btn '+(state.lobby.diffs.length===0?'cta':'')+'" data-diff-all="1">'+t("all")+'</button>'+
             ['easy','medium','hard'].map(function(d){
               var active=state.lobby.diffs.indexOf(d)>=0;
@@ -316,8 +311,6 @@
     Q_ACTIVE = pool.slice(0,n);
     Q_ORDER = []; for(var i=0;i<Q_ACTIVE.length;i++) Q_ORDER.push(i);
     state.questionIx=0; state.score=0; state.streak=0; state._awarded=false;
-    // إعادة تعبئة القدرات في بداية كل مباراة
-    state.power = {hint:2, freeze:1, shield:1, shieldArmed:false};
     location.hash="#/question";
   }
 
@@ -340,14 +333,12 @@
         '<span class="kbd">'+t("streak")+': '+state.streak+'</span>'+
       '</div>'+
 
-      // شريط القدرات (يظهر فقط إذا كانت القدرات مفعّلة في اللوبي)
-      (state.lobby.powerups ? (
-        '<div class="row" style="gap:8px;margin:6px 0;flex-wrap:wrap">'+
-          '<button class="btn" id="powHint">'+t("hint")+' ('+state.power.hint+')</button>'+
-          '<button class="btn" id="powFreeze">'+t("freeze")+' ('+state.power.freeze+')</button>'+
-          '<button class="btn" id="powShield">'+(state.power.shieldArmed ? (t("shield")+' ✓') : (t("shield")+' ('+state.power.shield+')'))+'</button>'+
-        '</div>'
-      ) : '')+
+      // === (3) صف القدرات مع الأيقونات ===
+      '<div class="row" style="gap:10px;margin:6px 0">'+
+        '<button class="kbd pow" data-pw="fifty">🔀 '+(lang==="ar"?"مساعدة 50/50":"50/50 Help")+' ('+state.powers.fifty+')</button>'+
+        '<button class="kbd pow" data-pw="freeze">🧊 '+(lang==="ar"?"إيقاف الوقت":"Freeze Time")+' ('+state.powers.freeze+')</button>'+
+        '<button class="kbd pow" data-pw="shield">🛡️ '+(lang==="ar"?"درع":"Shield")+' ('+state.powers.shield+')</button>'+
+      '</div>'+
 
       '<div class="h2" style="margin-bottom:8px">'+prompt+'</div>'+
       '<div style="display:flex;flex-direction:column;gap:8px">'+
@@ -378,94 +369,51 @@
     if(state.questionIx < Q_ORDER.length-1){ state.questionIx++; if(state.route==="question") render(); else location.hash="#/question"; }
     else { location.hash="#/results"; }
   }
-
-  // تحديث النصوص وحالة الأزرار لشريط القدرات دون إعادة رسم الصفحة
-  function updatePowerBar(){
-    var bh=$("#powHint"), bf=$("#powFreeze"), bs=$("#powShield");
-    if (bh){ bh.textContent = t("hint")+" ("+state.power.hint+")"; bh.disabled = state.power.hint<=0; }
-    if (bf){ bf.textContent = t("freeze")+" ("+state.power.freeze+")"; bf.disabled = state.power.freeze<=0; }
-    if (bs){
-      bs.textContent = state.power.shieldArmed ? (t("shield")+" ✓") : (t("shield")+" ("+state.power.shield+")");
-      bs.disabled = (state.power.shield<=0 && !state.power.shieldArmed);
-    }
-  }
-
   function wireQuestion(){
-    state._qAdvanced=false; startTimer(); updatePowerBar();
+    state._qAdvanced=false; startTimer();
+
+    // استخدام القدرات
+    $all(".pow").forEach(function(b){
+      b.addEventListener("click", function(){
+        var type=b.getAttribute("data-pw");
+        if(type==="fifty" && state.powers.fifty>0){
+          var wrong=$all(".opt").filter(function(o){ return o.getAttribute("data-ok")!=="1"; });
+          shuffle(wrong); wrong.slice(0,2).forEach(function(o){o.disabled=true; o.style.opacity="0.5";});
+          state.powers.fifty--; b.textContent='🔀 '+(lang==="ar"?"مساعدة 50/50":"50/50 Help")+' ('+state.powers.fifty+')';
+        }else if(type==="freeze" && state.powers.freeze>0){
+          clearInterval(state._timerId);
+          var left=state._remaining, timerEl=$("#timer");
+          if(timerEl) timerEl.textContent=mmss(left);
+          setTimeout(function(){ startTimer(); }, 5000);
+          state.powers.freeze--; b.textContent='🧊 '+(lang==="ar"?"إيقاف الوقت":"Freeze Time")+' ('+state.powers.freeze+')';
+        }else if(type==="shield" && state.powers.shield>0){
+          state._shield=1; state.powers.shield--;
+          b.textContent='🛡️ '+(lang==="ar"?"درع":"Shield")+' ('+state.powers.shield+')';
+        }
+      });
+    });
 
     $all(".opt").forEach(function(btn){
       btn.addEventListener("click",function(){
         if(state._qAdvanced) return;
-
-        var okOriginal = (btn.getAttribute("data-ok")==="1");
-        var ok = okOriginal;
-
-        // درع
-        var usedShield = false;
-        if (!ok && state.power.shieldArmed){
-          usedShield = true;
-          state.power.shieldArmed = false;
-          state.power.shield = Math.max(0, state.power.shield-1);
-          ok = true; // اعتبرها صحيحة بفضل الدرع
-          updatePowerBar();
+        var ok=btn.getAttribute("data-ok")==="1";
+        if(!ok && state._shield){ // حماية محاولة خاطئة واحدة
+          state._shield=0;
+          btn.classList.add("wrong");
+          btn.disabled=true;
+          return;
         }
-
         $all(".opt").forEach(function(b){b.disabled=true;});
         btn.classList.add(ok?"correct":"wrong");
         var nb=$("#nextBtn"); if(nb) nb.textContent=(ok?t("correct"):t("wrong"));
         state._qAdvanced=true;
-
-        if(ok){
-          if(usedShield){
-            // الدرع يمنع كسر السلسلة لكن بدون نقاط إضافية
-          }else{
-            var bonus=Math.ceil(state._remaining/1000)*5; state.score+=100+bonus; state.streak+=1;
-          }
-        }else{
-          state.streak=0;
-        }
+        if(ok){var bonus=Math.ceil(state._remaining/1000)*5; state.score+=100+bonus; state.streak+=1;}
+        else{state.streak=0;}
         setTimeout(nextStep,700);
       });
     });
 
     var nb=$("#nextBtn"); if(nb) nb.addEventListener("click",function(){ if(!state._qAdvanced){state.streak=0;state._qAdvanced=true;} nextStep(); });
-
-    // ===== قدرات =====
-    var bh=$("#powHint"), bf=$("#powFreeze"), bs=$("#powShield");
-
-    // 50/50: يعطّل خيارين خاطئين
-    if (bh) bh.addEventListener("click", function(){
-      if (state.power.hint<=0) return;
-      var wrong = $all(".opt").filter(function(b){ return b.getAttribute("data-ok")!=="1" && !b.disabled; });
-      shuffle(wrong);
-      var toDisable = Math.min(2, wrong.length);
-      for (var i=0;i<toDisable;i++){
-        wrong[i].disabled = true;
-        wrong[i].style.opacity = ".35";
-      }
-      state.power.hint--;
-      updatePowerBar();
-    });
-
-    // Freeze: +5 ثواني
-    if (bf) bf.addEventListener("click", function(){
-      if (state.power.freeze<=0) return;
-      state._remaining += 5000;
-      var timerEl=$("#timer"); if (timerEl) timerEl.textContent = mmss(state._remaining);
-      state.power.freeze--;
-      updatePowerBar();
-    });
-
-    // Shield: تفعيل/إلغاء تفعيل الدرع
-    if (bs) bs.addEventListener("click", function(){
-      if (state.power.shieldArmed){
-        state.power.shieldArmed=false;
-      } else {
-        if (state.power.shield<=0) return;
-        state.power.shieldArmed=true;
-      }
-      updatePowerBar();
-    });
   }
 
   function renderResults(){
@@ -493,21 +441,17 @@
   // ===== Avatar (PNG base + SVG accessories) =====
   function trophySVG(){
     var eq = state.equipped || {};
-
     function L(svg){
-      return '<svg viewBox="0 0 100 100" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">'+
-             svg+'</svg>';
+      return '<svg viewBox="0 0 100 100" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">'+svg+'</svg>';
     }
-
     var cape     = eq.cape     ? L('<path d="M10 60 L50 95 L90 60 Q75 65 50 65 Q25 65 10 60" fill="#8b5cf6" opacity="0.55"></path>') : '';
     var headband = eq.headband ? L('<rect x="22" y="28" width="56" height="6" rx="3" fill="#e11d48"></rect>') : '';
     var visor    = eq.visor    ? L('<rect x="28" y="44" width="44" height="6" rx="3" fill="#7c3aed" opacity="0.9"></rect>') : '';
     var scarf    = eq.scarf    ? L('<path d="M28 62 Q50 68 72 62 L72 68 Q50 76 28 68 Z" fill="#14b8a6"></path>') : '';
     var charm    = eq.charm    ? L('<circle cx="50" cy="74" r="4.5" fill="#ffd166" stroke="#a66f00" stroke-width="1.5"></circle>') : '';
-
     return ''+
       '<div style="position:relative;width:min(320px,72vw);aspect-ratio:1/1;margin:0 auto">'+
-        cape+
+        (cape||'')+
         '<img src="assets/IMG_1972.png" alt="mascot" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain">'+
         headband+visor+scarf+charm+
       '</div>';
