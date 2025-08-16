@@ -1,4 +1,4 @@
-/* Roundo v18 – Categories/Difficulty filters + Power-ups (Hint/Freeze/Shield) */
+/* Roundo v19 – Hint hides whole option + content.json cache-bust + categories/difficulty ready */
 (function () {
   'use strict';
 
@@ -133,7 +133,7 @@
     {id:6,prompt_ar:"عملة الإمارات العربية المتحدة؟",prompt_en:"The currency of the UAE?",
       answers:[{ar:"اليورو",en:"Euro"},{ar:"الدرهم",en:"Dirham",correct:true},{ar:"الدولار",en:"Dollar"},{ar:"الريال",en:"Riyal"}], category:"uae", difficulty:"easy"}
   ];
-  var QUESTIONS = ALL_QUESTIONS.slice(); // يتم استبدالها بالفلترة عند بدء المباراة
+  var QUESTIONS = ALL_QUESTIONS.slice();
   var Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
 
   // تحويل أسئلة content.json إلى نفس البنية
@@ -160,16 +160,18 @@
       });
     }
     if (out.length) {
-      ALL_QUESTIONS = out;
+      ALL_QUESTIONS.length = 0;
+      Array.prototype.push.apply(ALL_QUESTIONS, out);
       QUESTIONS = ALL_QUESTIONS.slice();
       Q_ORDER = shuffle(Array(QUESTIONS.length).fill(0).map(function(_,i){return i;}));
     }
   }
 
-  // ===== content =====
+  // ===== content (مع كسر كاش حسب v= في URL) =====
   function loadContent(cb){
     if (state.content){ if(cb) cb(); return; }
-    fetch("content.json", {cache:"no-store"})
+    var v = (new URLSearchParams(location.search)).get("v") || Date.now();
+    fetch("content.json?v="+encodeURIComponent(v), {cache:"no-store"})
       .then(function(r){ if(!r.ok) throw new Error(); return r.json(); })
       .then(function(json){
         state.content = json;
@@ -261,7 +263,7 @@
         state.lobby = {players:2,timeMs:20000,powerups:true};
         state.questionIx=0; state.score=0; state.streak=0; state._awarded=false;
 
-        // بناء حوض الأسئلة حسب الفلاتر
+        // حوض الأسئلة حسب الفلاتر
         var pool = ALL_QUESTIONS.filter(function(q){
           var byCat = (state.filters.category==="any") || (q.category===state.filters.category);
           var byDiff= (state.filters.difficulty==="any") || (q.difficulty===state.filters.difficulty);
@@ -293,7 +295,7 @@
               '<option value="4" '+(state.lobby.players===4?'selected':'')+'>4</option>'+
             '</select>'+
           '</label>'+
-          '<label class="kbd" style="flex:1">'+t("timePerQ")+
+          '<label class="kbd" style="flex:1)">'+t("timePerQ")+
             '<select id="selTime" style="width:100%;margin-top:4px">'+
               '<option value="10000" '+(state.lobby.timeMs===10000?'selected':'')+'>10s</option>'+
               '<option value="20000" '+(state.lobby.timeMs===20000?'selected':'')+'>20s</option>'+
@@ -400,28 +402,33 @@
     var freezeBadge = $("#pfreeze");
     var shieldBadge = $("#pshield");
 
+    // HINT: أخفِ خيارًا خاطئًا بالكامل
     var btnH=$("#pHint");
     if (btnH) btnH.addEventListener("click", function(){
       if (!useCoins(COSTS.hint)) return;
-      var wrong = $all(".opt").filter(function(b){ return b.getAttribute("data-ok")==="0" && !b.disabled && b.style.display!=="none"; });
+      var wrong = $all(".opt").filter(function(b){
+        return b.getAttribute("data-ok")==="0" && !b.disabled && b.style.display!=="none";
+      });
       if (!wrong.length) return;
       var pick = wrong[Math.floor(Math.random()*wrong.length)];
-      pick.disabled = true;
-      pick.style.opacity = "0.5";
+      pick.setAttribute("aria-hidden","true");
+      pick.style.display = "none"; // ← إخفاء كامل
     });
 
+    // FREEZE: إيقاف المؤقّت 5 ثوانٍ
     var btnF=$("#pFreeze");
     if (btnF) btnF.addEventListener("click", function(){
-      if (state._frozen) return; // نشط بالفعل
+      if (state._frozen) return;
       if (!useCoins(COSTS.freeze)) return;
       state._frozen = true;
       if (freezeBadge) freezeBadge.style.display = "inline-block";
       setTimeout(function(){ state._frozen=false; if (freezeBadge) freezeBadge.style.display="none"; }, 5000);
     });
 
+    // SHIELD: يحمي السلسلة من الانكسار لخطأ واحد
     var btnS=$("#pShield");
     if (btnS) btnS.addEventListener("click", function(){
-      if (state._shieldActive) return; // موجود
+      if (state._shieldActive) return;
       if (!useCoins(COSTS.shield)) return;
       state._shieldActive = true;
       if (shieldBadge) shieldBadge.style.display = "inline-block";
@@ -446,8 +453,8 @@
           state.score += 100 + bonus; state.streak += 1;
         } else {
           snd("bad");
-          if (!state._shieldActive) state.streak = 0; // shield يمنع كسر السلسلة
-          state._shieldActive = false; // يُستهلك عند أول خطأ
+          if (!state._shieldActive) state.streak = 0;
+          state._shieldActive = false;
         }
         setTimeout(nextStep, 700);
       });
@@ -467,8 +474,8 @@
       '<div class="card"><strong>'+t("streak")+':</strong> '+state.streak+'</div>'+
       '<div class="card"><strong>'+t("reward")+':</strong> <span class="coin"></span> '+coinsReward+'</div>'+
       '<div class="row" style="margin-top:12px">'+
-        '<a class="btn cta" id="claimBtn" style="flex:1">'+t("again")+'</a>'+
-        '<a class="btn" href="#/modes" style="flex:1">'+t("modesTitle")+'</a>'+
+        '<a class="btn cta" id="claimBtn" style="flex:1)">'+t("again")+'</a>'+
+        '<a class="btn" href="#/modes" style="flex:1)">'+t("modesTitle")+'</a>'+
       '</div>'
     ));
   }
@@ -483,7 +490,7 @@
     });
   }
 
-  // ===== Avatar/Store (كما في v17) =====
+  // ===== Avatar / Store =====
   function previewSVG(){
     var eq=state.equipped;
     var cape=eq.cape?'<path d="M30 110 L128 210 L226 110 Q200 120 128 120 Q56 120 30 110" fill="#8b5cf6" opacity="0.55"/>':'';
