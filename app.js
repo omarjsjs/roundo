@@ -1,4 +1,4 @@
-/* Roundo v13 – ES5-ish, fixes routing & next question advance, mounts #app if missing */
+/* Roundo v14 – ES5-ish, fixes routing & next question advance, mounts #app if missing */
 (function () {
   'use strict';
 
@@ -407,34 +407,39 @@ opts = shuffle(opts); // ترتيب عشوائي للأزرار كل مرة
       }).join("")
     ));
   }
+  
+// v14 render — يرسم الصفحة ثم يربط الأحداث دائماً
+function render(){
+  var app = getApp();
+  loadContent(function(){
+    clearInterval(state._timerId);
 
-  // ===== render switch =====
-  function render(){
-    var app = getApp();
-    loadContent(function(){
-      clearInterval(state._timerId);
-      var html="";
-      switch(state.route){
-        case "splash": html=renderSplash(); break;
-        case "home": html=renderHome(); break;
-        case "modes": html=renderModes(); break;
-        case "lobby": html=renderLobby(); break;
-        case "question": html=renderQuestion(); break;
-        case "results": html=renderResults(); break;
-        case "customization": html=renderCustomization(); break;
-        case "store": html=renderStore(); break;
-        default: html=renderSplash();
-      }
-      app.innerHTML = html;
-      if (state.route==="modes") wireModes();
-      if (state.route==="lobby") wireLobby();
-      if (state.route==="question") wireQuestion();
-      if (state.route==="results") wireResults();
-      if (state.route==="customization") wireCustomization();
-   app.innerHTML = html;
-markActiveTab();
-    });
-  }
+    var html="";
+    switch(state.route){
+      case "splash":    html = renderSplash();        break;
+      case "home":      html = renderHome();          break;
+      case "modes":     html = renderModes();         break;
+      case "lobby":     html = renderLobby();         break;
+      case "question":  html = renderQuestion();      break;
+      case "results":   html = renderResults();       break;
+      case "customization": html = renderCustomization(); break;
+      case "store":     html = renderStore();         break;
+      default:          html = renderSplash();
+    }
+
+    app.innerHTML = html;
+    if (typeof markActiveTab === "function") markActiveTab();
+
+    // مهم: ربط الأحداث حسب الصفحة
+    switch(state.route){
+      case "modes":        wireModes();         break;
+      case "lobby":        wireLobby();         break;
+      case "question":     wireQuestion();      break;
+      case "results":      wireResults();       break;
+      case "customization":wireCustomization(); break;
+    }
+  });
+}
 function markActiveTab(){
   var r = state.route || "splash";
   $all("header .tabs a").forEach(function(a){
