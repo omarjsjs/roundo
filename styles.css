@@ -43,3 +43,9 @@ main{max-width:900px;margin:16px auto;padding:0 12px}
 .avatar{display:flex;gap:16px;align-items:center}
 .avatar .preview{width:120px;height:120px;border-radius:16px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;background:var(--surf)}
 .ftr{opacity:.7;text-align:center;margin:24px 0}
+
+header .tabs .active {
+  background: #ffd166;
+  color: #222;
+  border-color: #ffd166;
+}
