@@ -1,0 +1,4204 @@
+{
+  "characters": [
+    {
+      "id": "trophy",
+      "name_en": "Trophy",
+      "name_ar": "كأس",
+      "colorways": [
+        "gold",
+        "silver",
+        "obsidian"
+      ],
+      "expressions": [
+        "neutral",
+        "happy",
+        "determined",
+        "shocked",
+        "wink",
+        "smirk"
+      ],
+      "default": {
+        "colorway": "gold",
+        "expression": "happy"
+      }
+    }
+  ],
+  "cosmetics": [
+    {
+      "id": "headband_red",
+      "slot": "headband",
+      "rarity": "common",
+      "price": {
+        "coins": 600
+      },
+      "appliesTo": [
+        "trophy"
+      ]
+    },
+    {
+      "id": "scarf_teal",
+      "slot": "scarf",
+      "rarity": "rare",
+      "price": {
+        "coins": 1200
+      },
+      "appliesTo": [
+        "trophy"
+      ]
+    },
+    {
+      "id": "visor_purple",
+      "slot": "visor",
+      "rarity": "rare",
+      "price": {
+        "gems": 80
+      },
+      "appliesTo": [
+        "trophy"
+      ]
+    },
+    {
+      "id": "cape_gold",
+      "slot": "cape",
+      "rarity": "epic",
+      "price": {
+        "gems": 120
+      },
+      "appliesTo": [
+        "trophy"
+      ]
+    },
+    {
+      "id": "medal_charm",
+      "slot": "charm",
+      "rarity": "rare",
+      "price": {
+        "coins": 900
+      },
+      "appliesTo": [
+        "trophy"
+      ]
+    }
+  ],
+  "store": {
+    "daily": [
+      "headband_red",
+      "scarf_teal"
+    ],
+    "weekly": [
+      "visor_purple",
+      "cape_gold",
+      "medal_charm"
+    ],
+    "starter_bundle": {
+      "items": [
+        "headband_red"
+      ],
+      "price": {
+        "coins": 0
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": 1,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة فرنسا؟",
+        "answers": [
+          {
+            "text": "باريس",
+            "correct": true
+          },
+          {
+            "text": "مدريد"
+          },
+          {
+            "text": "طوكيو"
+          },
+          {
+            "text": "تونس"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of France?",
+        "answers": [
+          {
+            "text": "Paris",
+            "correct": true
+          },
+          {
+            "text": "Cairo"
+          },
+          {
+            "text": "Madrid"
+          },
+          {
+            "text": "New Delhi"
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة إيطاليا؟",
+        "answers": [
+          {
+            "text": "باريس"
+          },
+          {
+            "text": "أوتاوا"
+          },
+          {
+            "text": "أثينا"
+          },
+          {
+            "text": "روما",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Italy?",
+        "answers": [
+          {
+            "text": "Paris"
+          },
+          {
+            "text": "Stockholm"
+          },
+          {
+            "text": "Ottawa"
+          },
+          {
+            "text": "Rome",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة إسبانيا؟",
+        "answers": [
+          {
+            "text": "نيودلهي"
+          },
+          {
+            "text": "الجزائر"
+          },
+          {
+            "text": "مدريد",
+            "correct": true
+          },
+          {
+            "text": "أمستردام"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Spain?",
+        "answers": [
+          {
+            "text": "New Delhi"
+          },
+          {
+            "text": "Rabat"
+          },
+          {
+            "text": "Madrid",
+            "correct": true
+          },
+          {
+            "text": "Ottawa"
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة ألمانيا؟",
+        "answers": [
+          {
+            "text": "برلين",
+            "correct": true
+          },
+          {
+            "text": "الرباط"
+          },
+          {
+            "text": "بكين"
+          },
+          {
+            "text": "تونس"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Germany?",
+        "answers": [
+          {
+            "text": "Berlin",
+            "correct": true
+          },
+          {
+            "text": "Amsterdam"
+          },
+          {
+            "text": "Beijing"
+          },
+          {
+            "text": "Paris"
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة اليابان؟",
+        "answers": [
+          {
+            "text": "الرباط"
+          },
+          {
+            "text": "برلين"
+          },
+          {
+            "text": "باريس"
+          },
+          {
+            "text": "طوكيو",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Japan?",
+        "answers": [
+          {
+            "text": "Canberra"
+          },
+          {
+            "text": "Rabat"
+          },
+          {
+            "text": "Amsterdam"
+          },
+          {
+            "text": "Tokyo",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة المملكة المتحدة؟",
+        "answers": [
+          {
+            "text": "الرباط"
+          },
+          {
+            "text": "بكين"
+          },
+          {
+            "text": "أنقرة"
+          },
+          {
+            "text": "لندن",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of United Kingdom?",
+        "answers": [
+          {
+            "text": "Stockholm"
+          },
+          {
+            "text": "Oslo"
+          },
+          {
+            "text": "Canberra"
+          },
+          {
+            "text": "London",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة كندا؟",
+        "answers": [
+          {
+            "text": "نيودلهي"
+          },
+          {
+            "text": "أوتاوا",
+            "correct": true
+          },
+          {
+            "text": "روما"
+          },
+          {
+            "text": "الرباط"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Canada?",
+        "answers": [
+          {
+            "text": "Beijing"
+          },
+          {
+            "text": "Ottawa",
+            "correct": true
+          },
+          {
+            "text": "Athens"
+          },
+          {
+            "text": "Rome"
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة أستراليا؟",
+        "answers": [
+          {
+            "text": "كانبيرا",
+            "correct": true
+          },
+          {
+            "text": "لندن"
+          },
+          {
+            "text": "بكين"
+          },
+          {
+            "text": "أنقرة"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Australia?",
+        "answers": [
+          {
+            "text": "Canberra",
+            "correct": true
+          },
+          {
+            "text": "New Delhi"
+          },
+          {
+            "text": "Amsterdam"
+          },
+          {
+            "text": "Tunis"
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة الصين؟",
+        "answers": [
+          {
+            "text": "بكين",
+            "correct": true
+          },
+          {
+            "text": "نيودلهي"
+          },
+          {
+            "text": "أثينا"
+          },
+          {
+            "text": "كانبيرا"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of China?",
+        "answers": [
+          {
+            "text": "Beijing",
+            "correct": true
+          },
+          {
+            "text": "Berlin"
+          },
+          {
+            "text": "London"
+          },
+          {
+            "text": "Ankara"
+          }
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة الهند؟",
+        "answers": [
+          {
+            "text": "تونس"
+          },
+          {
+            "text": "نيودلهي",
+            "correct": true
+          },
+          {
+            "text": "ستوكهولم"
+          },
+          {
+            "text": "أوتاوا"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of India?",
+        "answers": [
+          {
+            "text": "Stockholm"
+          },
+          {
+            "text": "New Delhi",
+            "correct": true
+          },
+          {
+            "text": "Rome"
+          },
+          {
+            "text": "Tunis"
+          }
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة مصر؟",
+        "answers": [
+          {
+            "text": "طرابلس"
+          },
+          {
+            "text": "القاهرة",
+            "correct": true
+          },
+          {
+            "text": "الجزائر"
+          },
+          {
+            "text": "طوكيو"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Egypt?",
+        "answers": [
+          {
+            "text": "Tunis"
+          },
+          {
+            "text": "Cairo",
+            "correct": true
+          },
+          {
+            "text": "Athens"
+          },
+          {
+            "text": "London"
+          }
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة المغرب؟",
+        "answers": [
+          {
+            "text": "أنقرة"
+          },
+          {
+            "text": "تونس"
+          },
+          {
+            "text": "لندن"
+          },
+          {
+            "text": "الرباط",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Morocco?",
+        "answers": [
+          {
+            "text": "Athens"
+          },
+          {
+            "text": "Paris"
+          },
+          {
+            "text": "Beijing"
+          },
+          {
+            "text": "Rabat",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة الجزائر؟",
+        "answers": [
+          {
+            "text": "الجزائر",
+            "correct": true
+          },
+          {
+            "text": "طوكيو"
+          },
+          {
+            "text": "القاهرة"
+          },
+          {
+            "text": "أنقرة"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Algeria?",
+        "answers": [
+          {
+            "text": "Algiers",
+            "correct": true
+          },
+          {
+            "text": "Madrid"
+          },
+          {
+            "text": "London"
+          },
+          {
+            "text": "Paris"
+          }
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة تونس؟",
+        "answers": [
+          {
+            "text": "تونس",
+            "correct": true
+          },
+          {
+            "text": "مدريد"
+          },
+          {
+            "text": "بكين"
+          },
+          {
+            "text": "أوتاوا"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Tunisia?",
+        "answers": [
+          {
+            "text": "Tunis",
+            "correct": true
+          },
+          {
+            "text": "London"
+          },
+          {
+            "text": "New Delhi"
+          },
+          {
+            "text": "Ottawa"
+          }
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة ليبيا؟",
+        "answers": [
+          {
+            "text": "كانبيرا"
+          },
+          {
+            "text": "نيودلهي"
+          },
+          {
+            "text": "طرابلس",
+            "correct": true
+          },
+          {
+            "text": "الجزائر"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Libya?",
+        "answers": [
+          {
+            "text": "Amsterdam"
+          },
+          {
+            "text": "Rabat"
+          },
+          {
+            "text": "Tripoli",
+            "correct": true
+          },
+          {
+            "text": "Cairo"
+          }
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة تركيا؟",
+        "answers": [
+          {
+            "text": "باريس"
+          },
+          {
+            "text": "أنقرة",
+            "correct": true
+          },
+          {
+            "text": "أوتاوا"
+          },
+          {
+            "text": "أوسلو"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Turkey?",
+        "answers": [
+          {
+            "text": "Oslo"
+          },
+          {
+            "text": "Ankara",
+            "correct": true
+          },
+          {
+            "text": "Beijing"
+          },
+          {
+            "text": "Cairo"
+          }
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة اليونان؟",
+        "answers": [
+          {
+            "text": "طوكيو"
+          },
+          {
+            "text": "برلين"
+          },
+          {
+            "text": "أثينا",
+            "correct": true
+          },
+          {
+            "text": "مدريد"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Greece?",
+        "answers": [
+          {
+            "text": "Amsterdam"
+          },
+          {
+            "text": "Tunis"
+          },
+          {
+            "text": "Athens",
+            "correct": true
+          },
+          {
+            "text": "Ottawa"
+          }
+        ]
+      }
+    },
+    {
+      "id": 18,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة هولندا؟",
+        "answers": [
+          {
+            "text": "كانبيرا"
+          },
+          {
+            "text": "القاهرة"
+          },
+          {
+            "text": "ستوكهولم"
+          },
+          {
+            "text": "أمستردام",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Netherlands?",
+        "answers": [
+          {
+            "text": "Oslo"
+          },
+          {
+            "text": "Berlin"
+          },
+          {
+            "text": "London"
+          },
+          {
+            "text": "Amsterdam",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة السويد؟",
+        "answers": [
+          {
+            "text": "أوتاوا"
+          },
+          {
+            "text": "برلين"
+          },
+          {
+            "text": "تونس"
+          },
+          {
+            "text": "ستوكهولم",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Sweden?",
+        "answers": [
+          {
+            "text": "Beijing"
+          },
+          {
+            "text": "Ottawa"
+          },
+          {
+            "text": "Algiers"
+          },
+          {
+            "text": "Stockholm",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "category": "geography",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة النرويج؟",
+        "answers": [
+          {
+            "text": "أثينا"
+          },
+          {
+            "text": "تونس"
+          },
+          {
+            "text": "أوسلو",
+            "correct": true
+          },
+          {
+            "text": "الجزائر"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Norway?",
+        "answers": [
+          {
+            "text": "Tunis"
+          },
+          {
+            "text": "London"
+          },
+          {
+            "text": "Oslo",
+            "correct": true
+          },
+          {
+            "text": "Tripoli"
+          }
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "category": "uae",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "سنة اتحاد دولة الإمارات؟",
+        "answers": [
+          {
+            "text": "1971",
+            "correct": true
+          },
+          {
+            "text": "1973"
+          },
+          {
+            "text": "1969"
+          },
+          {
+            "text": "1981"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Year of the UAE union?",
+        "answers": [
+          {
+            "text": "1971",
+            "correct": true
+          },
+          {
+            "text": "1973"
+          },
+          {
+            "text": "1969"
+          },
+          {
+            "text": "1981"
+          }
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "category": "uae",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عاصمة دولة الإمارات؟",
+        "answers": [
+          {
+            "text": "أبوظبي",
+            "correct": true
+          },
+          {
+            "text": "دبي"
+          },
+          {
+            "text": "الشارقة"
+          },
+          {
+            "text": "العين"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of the UAE?",
+        "answers": [
+          {
+            "text": "Abu Dhabi",
+            "correct": true
+          },
+          {
+            "text": "Dubai"
+          },
+          {
+            "text": "Sharjah"
+          },
+          {
+            "text": "Al Ain"
+          }
+        ]
+      }
+    },
+    {
+      "id": 23,
+      "category": "uae",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عملة الإمارات؟",
+        "answers": [
+          {
+            "text": "الدرهم",
+            "correct": true
+          },
+          {
+            "text": "الدينار"
+          },
+          {
+            "text": "الريال"
+          },
+          {
+            "text": "الدولار"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "UAE currency?",
+        "answers": [
+          {
+            "text": "Dirham",
+            "correct": true
+          },
+          {
+            "text": "Dinar"
+          },
+          {
+            "text": "Riyal"
+          },
+          {
+            "text": "Dollar"
+          }
+        ]
+      }
+    },
+    {
+      "id": 24,
+      "category": "uae",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أعلى قمة جبلية في الإمارات؟",
+        "answers": [
+          {
+            "text": "جبل جيس",
+            "correct": true
+          },
+          {
+            "text": "حفيت"
+          },
+          {
+            "text": "جبل علي"
+          },
+          {
+            "text": "ظنة"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Highest mountain peak in the UAE?",
+        "answers": [
+          {
+            "text": "Jebel Jais",
+            "correct": true
+          },
+          {
+            "text": "Hafeet"
+          },
+          {
+            "text": "Jebel Ali"
+          },
+          {
+            "text": "Dhanna"
+          }
+        ]
+      }
+    },
+    {
+      "id": 25,
+      "category": "uae",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عدد الإمارات المكوِّنة للدولة؟",
+        "answers": [
+          {
+            "text": "سبع",
+            "correct": true
+          },
+          {
+            "text": "ست"
+          },
+          {
+            "text": "تسع"
+          },
+          {
+            "text": "خمس"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Number of emirates in the UAE?",
+        "answers": [
+          {
+            "text": "Seven",
+            "correct": true
+          },
+          {
+            "text": "Six"
+          },
+          {
+            "text": "Nine"
+          },
+          {
+            "text": "Five"
+          }
+        ]
+      }
+    },
+    {
+      "id": 26,
+      "category": "uae",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "أطول مبنى في العالم يقع في؟",
+        "answers": [
+          {
+            "text": "دبي",
+            "correct": true
+          },
+          {
+            "text": "أبوظبي"
+          },
+          {
+            "text": "الرياض"
+          },
+          {
+            "text": "الدوحة"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "The tallest building in the world is in?",
+        "answers": [
+          {
+            "text": "Dubai",
+            "correct": true
+          },
+          {
+            "text": "Abu Dhabi"
+          },
+          {
+            "text": "Riyadh"
+          },
+          {
+            "text": "Doha"
+          }
+        ]
+      }
+    },
+    {
+      "id": 27,
+      "category": "uae",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أكبر إمارة من حيث المساحة؟",
+        "answers": [
+          {
+            "text": "أبوظبي",
+            "correct": true
+          },
+          {
+            "text": "دبي"
+          },
+          {
+            "text": "الشارقة"
+          },
+          {
+            "text": "الفجيرة"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Largest emirate by area?",
+        "answers": [
+          {
+            "text": "Abu Dhabi",
+            "correct": true
+          },
+          {
+            "text": "Dubai"
+          },
+          {
+            "text": "Sharjah"
+          },
+          {
+            "text": "Fujairah"
+          }
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "category": "uae",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "مطار دبي الدولي رمزه؟",
+        "answers": [
+          {
+            "text": "DXB",
+            "correct": true
+          },
+          {
+            "text": "DBX"
+          },
+          {
+            "text": "DXD"
+          },
+          {
+            "text": "DDX"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Dubai International Airport code?",
+        "answers": [
+          {
+            "text": "DXB",
+            "correct": true
+          },
+          {
+            "text": "DBX"
+          },
+          {
+            "text": "DXD"
+          },
+          {
+            "text": "DDX"
+          }
+        ]
+      }
+    },
+    {
+      "id": 29,
+      "category": "uae",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "اللغة الرسمية في الإمارات؟",
+        "answers": [
+          {
+            "text": "العربية",
+            "correct": true
+          },
+          {
+            "text": "الإنجليزية"
+          },
+          {
+            "text": "الأوردو"
+          },
+          {
+            "text": "الفارسية"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Official language of the UAE?",
+        "answers": [
+          {
+            "text": "Arabic",
+            "correct": true
+          },
+          {
+            "text": "English"
+          },
+          {
+            "text": "Urdu"
+          },
+          {
+            "text": "Farsi"
+          }
+        ]
+      }
+    },
+    {
+      "id": 30,
+      "category": "uae",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "الإمارات تطل على أي خليج؟",
+        "answers": [
+          {
+            "text": "الخليج العربي",
+            "correct": true
+          },
+          {
+            "text": "الخليج البنغالي"
+          },
+          {
+            "text": "الخليج العماني"
+          },
+          {
+            "text": "الخليج المكسيكي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "The UAE overlooks which gulf?",
+        "answers": [
+          {
+            "text": "Arabian Gulf",
+            "correct": true
+          },
+          {
+            "text": "Bay of Bengal"
+          },
+          {
+            "text": "Gulf of Oman"
+          },
+          {
+            "text": "Gulf of Mexico"
+          }
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "category": "math",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "٢ + ٢ = ؟",
+        "answers": [
+          {
+            "text": "٣"
+          },
+          {
+            "text": "٤",
+            "correct": true
+          },
+          {
+            "text": "٥"
+          },
+          {
+            "text": "٦"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "2 + 2 = ?",
+        "answers": [
+          {
+            "text": "3"
+          },
+          {
+            "text": "4",
+            "correct": true
+          },
+          {
+            "text": "5"
+          },
+          {
+            "text": "6"
+          }
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "category": "math",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "٥ × ٦ = ؟",
+        "answers": [
+          {
+            "text": "٣٠",
+            "correct": true
+          },
+          {
+            "text": "٢٤"
+          },
+          {
+            "text": "٤٠"
+          },
+          {
+            "text": "٣٦"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "5 × 6 = ?",
+        "answers": [
+          {
+            "text": "30",
+            "correct": true
+          },
+          {
+            "text": "24"
+          },
+          {
+            "text": "40"
+          },
+          {
+            "text": "36"
+          }
+        ]
+      }
+    },
+    {
+      "id": 33,
+      "category": "math",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "الجذر التربيعي لـ 144 هو؟",
+        "answers": [
+          {
+            "text": "10"
+          },
+          {
+            "text": "12",
+            "correct": true
+          },
+          {
+            "text": "14"
+          },
+          {
+            "text": "16"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Square root of 144?",
+        "answers": [
+          {
+            "text": "10"
+          },
+          {
+            "text": "12",
+            "correct": true
+          },
+          {
+            "text": "14"
+          },
+          {
+            "text": "16"
+          }
+        ]
+      }
+    },
+    {
+      "id": 34,
+      "category": "math",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "٧٢ ÷ ٨ = ؟",
+        "answers": [
+          {
+            "text": "٨"
+          },
+          {
+            "text": "٩",
+            "correct": true
+          },
+          {
+            "text": "٧"
+          },
+          {
+            "text": "٦"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "72 ÷ 8 = ?",
+        "answers": [
+          {
+            "text": "8"
+          },
+          {
+            "text": "9",
+            "correct": true
+          },
+          {
+            "text": "7"
+          },
+          {
+            "text": "6"
+          }
+        ]
+      }
+    },
+    {
+      "id": 35,
+      "category": "math",
+      "difficulty": "hard",
+      "ar": {
+        "prompt": "عدد أولي من التالي؟",
+        "answers": [
+          {
+            "text": "29",
+            "correct": true
+          },
+          {
+            "text": "27"
+          },
+          {
+            "text": "33"
+          },
+          {
+            "text": "35"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Which is prime?",
+        "answers": [
+          {
+            "text": "29",
+            "correct": true
+          },
+          {
+            "text": "27"
+          },
+          {
+            "text": "33"
+          },
+          {
+            "text": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": 36,
+      "category": "math",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "قيمة π تقريبًا؟",
+        "answers": [
+          {
+            "text": "3.1416",
+            "correct": true
+          },
+          {
+            "text": "2.7183"
+          },
+          {
+            "text": "1.6180"
+          },
+          {
+            "text": "3.3333"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Approximate value of π?",
+        "answers": [
+          {
+            "text": "3.1416",
+            "correct": true
+          },
+          {
+            "text": "2.7183"
+          },
+          {
+            "text": "1.6180"
+          },
+          {
+            "text": "3.3333"
+          }
+        ]
+      }
+    },
+    {
+      "id": 37,
+      "category": "math",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "١٥٪ من ٢٠٠ =",
+        "answers": [
+          {
+            "text": "٣٠",
+            "correct": true
+          },
+          {
+            "text": "٤٠"
+          },
+          {
+            "text": "٢٥"
+          },
+          {
+            "text": "٣٥"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "15% of 200 =",
+        "answers": [
+          {
+            "text": "30",
+            "correct": true
+          },
+          {
+            "text": "40"
+          },
+          {
+            "text": "25"
+          },
+          {
+            "text": "35"
+          }
+        ]
+      }
+    },
+    {
+      "id": 38,
+      "category": "math",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "٧^٢ =",
+        "answers": [
+          {
+            "text": "٤٩",
+            "correct": true
+          },
+          {
+            "text": "٦٤"
+          },
+          {
+            "text": "٥٦"
+          },
+          {
+            "text": "٣٦"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "7^2 =",
+        "answers": [
+          {
+            "text": "49",
+            "correct": true
+          },
+          {
+            "text": "64"
+          },
+          {
+            "text": "56"
+          },
+          {
+            "text": "36"
+          }
+        ]
+      }
+    },
+    {
+      "id": 39,
+      "category": "math",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "متوسط ٤ و٨ و١٢ =",
+        "answers": [
+          {
+            "text": "٨",
+            "correct": true
+          },
+          {
+            "text": "٩"
+          },
+          {
+            "text": "١٠"
+          },
+          {
+            "text": "٧"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Mean of 4, 8, 12 =",
+        "answers": [
+          {
+            "text": "8",
+            "correct": true
+          },
+          {
+            "text": "9"
+          },
+          {
+            "text": "10"
+          },
+          {
+            "text": "7"
+          }
+        ]
+      }
+    },
+    {
+      "id": 40,
+      "category": "math",
+      "difficulty": "hard",
+      "ar": {
+        "prompt": "٩! يقبل القسمة على؟",
+        "answers": [
+          {
+            "text": "١٠",
+            "correct": true
+          },
+          {
+            "text": "٧"
+          },
+          {
+            "text": "١١"
+          },
+          {
+            "text": "١٣"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "9! is divisible by?",
+        "answers": [
+          {
+            "text": "10",
+            "correct": true
+          },
+          {
+            "text": "7"
+          },
+          {
+            "text": "11"
+          },
+          {
+            "text": "13"
+          }
+        ]
+      }
+    },
+    {
+      "id": 41,
+      "category": "science",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "رمز الحديد الكيميائي؟",
+        "answers": [
+          {
+            "text": "Fe",
+            "correct": true
+          },
+          {
+            "text": "Ir"
+          },
+          {
+            "text": "In"
+          },
+          {
+            "text": "I"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Chemical symbol for Iron?",
+        "answers": [
+          {
+            "text": "Fe",
+            "correct": true
+          },
+          {
+            "text": "Ir"
+          },
+          {
+            "text": "In"
+          },
+          {
+            "text": "I"
+          }
+        ]
+      }
+    },
+    {
+      "id": 42,
+      "category": "science",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أكثر الغازات وفرة في الغلاف الجوي؟",
+        "answers": [
+          {
+            "text": "النيتروجين",
+            "correct": true
+          },
+          {
+            "text": "الأكسجين"
+          },
+          {
+            "text": "ثاني أكسيد الكربون"
+          },
+          {
+            "text": "الآرجون"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Most abundant gas in Earth's atmosphere?",
+        "answers": [
+          {
+            "text": "Nitrogen",
+            "correct": true
+          },
+          {
+            "text": "Oxygen"
+          },
+          {
+            "text": "Carbon dioxide"
+          },
+          {
+            "text": "Argon"
+          }
+        ]
+      }
+    },
+    {
+      "id": 43,
+      "category": "science",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "الكوكب الأحمر هو؟",
+        "answers": [
+          {
+            "text": "المريخ",
+            "correct": true
+          },
+          {
+            "text": "الزهرة"
+          },
+          {
+            "text": "عطارد"
+          },
+          {
+            "text": "نبتون"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "The Red Planet is?",
+        "answers": [
+          {
+            "text": "Mars",
+            "correct": true
+          },
+          {
+            "text": "Venus"
+          },
+          {
+            "text": "Mercury"
+          },
+          {
+            "text": "Neptune"
+          }
+        ]
+      }
+    },
+    {
+      "id": 44,
+      "category": "science",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عدد عظام الإنسان البالغ تقريبًا؟",
+        "answers": [
+          {
+            "text": "206",
+            "correct": true
+          },
+          {
+            "text": "180"
+          },
+          {
+            "text": "220"
+          },
+          {
+            "text": "250"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Approximate number of adult human bones?",
+        "answers": [
+          {
+            "text": "206",
+            "correct": true
+          },
+          {
+            "text": "180"
+          },
+          {
+            "text": "220"
+          },
+          {
+            "text": "250"
+          }
+        ]
+      }
+    },
+    {
+      "id": 45,
+      "category": "science",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "وحدة شدة التيار الكهربائي؟",
+        "answers": [
+          {
+            "text": "الأمبير",
+            "correct": true
+          },
+          {
+            "text": "الفولت"
+          },
+          {
+            "text": "الأوم"
+          },
+          {
+            "text": "الواط"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Unit of electric current?",
+        "answers": [
+          {
+            "text": "Ampere",
+            "correct": true
+          },
+          {
+            "text": "Volt"
+          },
+          {
+            "text": "Ohm"
+          },
+          {
+            "text": "Watt"
+          }
+        ]
+      }
+    },
+    {
+      "id": 46,
+      "category": "science",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "موقع طبقة الأوزون؟",
+        "answers": [
+          {
+            "text": "الستراتوسفير",
+            "correct": true
+          },
+          {
+            "text": "التروبوسفير"
+          },
+          {
+            "text": "الميزوسفير"
+          },
+          {
+            "text": "الثيرموسفير"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Ozone layer is in the?",
+        "answers": [
+          {
+            "text": "Stratosphere",
+            "correct": true
+          },
+          {
+            "text": "Troposphere"
+          },
+          {
+            "text": "Mesosphere"
+          },
+          {
+            "text": "Thermosphere"
+          }
+        ]
+      }
+    },
+    {
+      "id": 47,
+      "category": "science",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "وحدة المقاومة؟",
+        "answers": [
+          {
+            "text": "الأوم",
+            "correct": true
+          },
+          {
+            "text": "الفولت"
+          },
+          {
+            "text": "الأمبير"
+          },
+          {
+            "text": "الهرتز"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Unit of resistance?",
+        "answers": [
+          {
+            "text": "Ohm",
+            "correct": true
+          },
+          {
+            "text": "Volt"
+          },
+          {
+            "text": "Ampere"
+          },
+          {
+            "text": "Hertz"
+          }
+        ]
+      }
+    },
+    {
+      "id": 48,
+      "category": "science",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "العالم واضع قوانين الحركة؟",
+        "answers": [
+          {
+            "text": "نيوتن",
+            "correct": true
+          },
+          {
+            "text": "غاليليو"
+          },
+          {
+            "text": "أينشتاين"
+          },
+          {
+            "text": "هوك"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Scientist who formulated laws of motion?",
+        "answers": [
+          {
+            "text": "Newton",
+            "correct": true
+          },
+          {
+            "text": "Galileo"
+          },
+          {
+            "text": "Einstein"
+          },
+          {
+            "text": "Hawking"
+          }
+        ]
+      }
+    },
+    {
+      "id": 49,
+      "category": "science",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "المسؤول عن البناء الضوئي؟",
+        "answers": [
+          {
+            "text": "الكلوروڤيل",
+            "correct": true
+          },
+          {
+            "text": "الهيموغلوبين"
+          },
+          {
+            "text": "الحمض النووي"
+          },
+          {
+            "text": "الميزنشيم"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Pigment for photosynthesis?",
+        "answers": [
+          {
+            "text": "Chlorophyll",
+            "correct": true
+          },
+          {
+            "text": "Hemoglobin"
+          },
+          {
+            "text": "DNA"
+          },
+          {
+            "text": "Mesenchyme"
+          }
+        ]
+      }
+    },
+    {
+      "id": 50,
+      "category": "science",
+      "difficulty": "hard",
+      "ar": {
+        "prompt": "أقرب نجم بعد الشمس؟",
+        "answers": [
+          {
+            "text": "بروكسيما قنطورس",
+            "correct": true
+          },
+          {
+            "text": "منكب الجوزاء"
+          },
+          {
+            "text": "السِّماك الرامح"
+          },
+          {
+            "text": "الشِّعرى اليمانية"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Closest star after the Sun?",
+        "answers": [
+          {
+            "text": "Proxima Centauri",
+            "correct": true
+          },
+          {
+            "text": "Betelgeuse"
+          },
+          {
+            "text": "Arcturus"
+          },
+          {
+            "text": "Sirius"
+          }
+        ]
+      }
+    },
+    {
+      "id": 51,
+      "category": "science",
+      "difficulty": "hard",
+      "ar": {
+        "prompt": "سرعة الضوء تقريبًا؟",
+        "answers": [
+          {
+            "text": "≈ 300,000 كم/ث",
+            "correct": true
+          },
+          {
+            "text": "≈ 150,000 كم/ث"
+          },
+          {
+            "text": "≈ 30,000 كم/ث"
+          },
+          {
+            "text": "≈ 3,000 كم/ث"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Speed of light approx.?",
+        "answers": [
+          {
+            "text": "≈ 300,000 km/s",
+            "correct": true
+          },
+          {
+            "text": "≈ 150,000 km/s"
+          },
+          {
+            "text": "≈ 30,000 km/s"
+          },
+          {
+            "text": "≈ 3,000 km/s"
+          }
+        ]
+      }
+    },
+    {
+      "id": 52,
+      "category": "science",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "الجزيء المسئول عن الطاقة في الخلية؟",
+        "answers": [
+          {
+            "text": "ATP",
+            "correct": true
+          },
+          {
+            "text": "DNA"
+          },
+          {
+            "text": "RNA"
+          },
+          {
+            "text": "NADH"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Primary energy molecule in cells?",
+        "answers": [
+          {
+            "text": "ATP",
+            "correct": true
+          },
+          {
+            "text": "DNA"
+          },
+          {
+            "text": "RNA"
+          },
+          {
+            "text": "NADH"
+          }
+        ]
+      }
+    },
+    {
+      "id": 53,
+      "category": "web",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "HTTP اختصار؟",
+        "answers": [
+          {
+            "text": "HyperText Transfer Protocol",
+            "correct": true
+          },
+          {
+            "text": "High Text Transfer Program"
+          },
+          {
+            "text": "Host Transfer Protocol"
+          },
+          {
+            "text": "Hyper Tool Text Process"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "HTTP stands for?",
+        "answers": [
+          {
+            "text": "HyperText Transfer Protocol",
+            "correct": true
+          },
+          {
+            "text": "High Text Transfer Program"
+          },
+          {
+            "text": "Host Transfer Protocol"
+          },
+          {
+            "text": "Hyper Tool Text Process"
+          }
+        ]
+      }
+    },
+    {
+      "id": 54,
+      "category": "web",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "CSS لتنسيق الصفحات؟",
+        "answers": [
+          {
+            "text": "نعم",
+            "correct": true
+          },
+          {
+            "text": "لا"
+          },
+          {
+            "text": "أحيانًا"
+          },
+          {
+            "text": "غير صحيح"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "CSS is for styling pages?",
+        "answers": [
+          {
+            "text": "Yes",
+            "correct": true
+          },
+          {
+            "text": "No"
+          },
+          {
+            "text": "Sometimes"
+          },
+          {
+            "text": "Incorrect"
+          }
+        ]
+      }
+    },
+    {
+      "id": 55,
+      "category": "web",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "DOM يشير إلى؟",
+        "answers": [
+          {
+            "text": "Document Object Model",
+            "correct": true
+          },
+          {
+            "text": "Data Object Map"
+          },
+          {
+            "text": "Dynamic Output Mode"
+          },
+          {
+            "text": "Display Object Manager"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "DOM stands for?",
+        "answers": [
+          {
+            "text": "Document Object Model",
+            "correct": true
+          },
+          {
+            "text": "Data Object Map"
+          },
+          {
+            "text": "Dynamic Output Mode"
+          },
+          {
+            "text": "Display Object Manager"
+          }
+        ]
+      }
+    },
+    {
+      "id": 56,
+      "category": "web",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "JS ترمز إلى؟",
+        "answers": [
+          {
+            "text": "JavaScript",
+            "correct": true
+          },
+          {
+            "text": "Java Source"
+          },
+          {
+            "text": "JSON Script"
+          },
+          {
+            "text": "Just Script"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "JS stands for?",
+        "answers": [
+          {
+            "text": "JavaScript",
+            "correct": true
+          },
+          {
+            "text": "Java Source"
+          },
+          {
+            "text": "JSON Script"
+          },
+          {
+            "text": "Just Script"
+          }
+        ]
+      }
+    },
+    {
+      "id": 57,
+      "category": "web",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "SQL تُستخدم لـ؟",
+        "answers": [
+          {
+            "text": "قواعد البيانات",
+            "correct": true
+          },
+          {
+            "text": "الصور"
+          },
+          {
+            "text": "الشبكات"
+          },
+          {
+            "text": "الهندسة"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "SQL is used for?",
+        "answers": [
+          {
+            "text": "Databases",
+            "correct": true
+          },
+          {
+            "text": "Images"
+          },
+          {
+            "text": "Networks"
+          },
+          {
+            "text": "Engineering"
+          }
+        ]
+      }
+    },
+    {
+      "id": 58,
+      "category": "web",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "عنصر الفقرة في HTML؟",
+        "answers": [
+          {
+            "text": "<p>",
+            "correct": true
+          },
+          {
+            "text": "<div>"
+          },
+          {
+            "text": "<span>"
+          },
+          {
+            "text": "<h1>"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Paragraph element in HTML?",
+        "answers": [
+          {
+            "text": "<p>",
+            "correct": true
+          },
+          {
+            "text": "<div>"
+          },
+          {
+            "text": "<span>"
+          },
+          {
+            "text": "<h1>"
+          }
+        ]
+      }
+    },
+    {
+      "id": 59,
+      "category": "web",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "بروتوكول استلام البريد؟",
+        "answers": [
+          {
+            "text": "IMAP",
+            "correct": true
+          },
+          {
+            "text": "SMTP"
+          },
+          {
+            "text": "FTP"
+          },
+          {
+            "text": "SSH"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Email receiving protocol?",
+        "answers": [
+          {
+            "text": "IMAP",
+            "correct": true
+          },
+          {
+            "text": "SMTP"
+          },
+          {
+            "text": "FTP"
+          },
+          {
+            "text": "SSH"
+          }
+        ]
+      }
+    },
+    {
+      "id": 60,
+      "category": "web",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "كود نجاح HTTP؟",
+        "answers": [
+          {
+            "text": "200",
+            "correct": true
+          },
+          {
+            "text": "404"
+          },
+          {
+            "text": "500"
+          },
+          {
+            "text": "301"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "HTTP success status code?",
+        "answers": [
+          {
+            "text": "200",
+            "correct": true
+          },
+          {
+            "text": "404"
+          },
+          {
+            "text": "500"
+          },
+          {
+            "text": "301"
+          }
+        ]
+      }
+    },
+    {
+      "id": 61,
+      "category": "web",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "أداة تحكم الإصدارات؟",
+        "answers": [
+          {
+            "text": "Git",
+            "correct": true
+          },
+          {
+            "text": "NPM"
+          },
+          {
+            "text": "Webpack"
+          },
+          {
+            "text": "Docker"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Version control tool?",
+        "answers": [
+          {
+            "text": "Git",
+            "correct": true
+          },
+          {
+            "text": "NPM"
+          },
+          {
+            "text": "Webpack"
+          },
+          {
+            "text": "Docker"
+          }
+        ]
+      }
+    },
+    {
+      "id": 62,
+      "category": "web",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "وسم ربط CSS؟",
+        "answers": [
+          {
+            "text": "<link>",
+            "correct": true
+          },
+          {
+            "text": "<style>"
+          },
+          {
+            "text": "<script>"
+          },
+          {
+            "text": "<meta>"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Tag to link CSS?",
+        "answers": [
+          {
+            "text": "<link>",
+            "correct": true
+          },
+          {
+            "text": "<style>"
+          },
+          {
+            "text": "<script>"
+          },
+          {
+            "text": "<meta>"
+          }
+        ]
+      }
+    },
+    {
+      "id": 63,
+      "category": "web",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "زر HTML الصحيح؟",
+        "answers": [
+          {
+            "text": "<button>",
+            "correct": true
+          },
+          {
+            "text": "<btn>"
+          },
+          {
+            "text": "<press>"
+          },
+          {
+            "text": "<click>"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Correct button element?",
+        "answers": [
+          {
+            "text": "<button>",
+            "correct": true
+          },
+          {
+            "text": "<btn>"
+          },
+          {
+            "text": "<press>"
+          },
+          {
+            "text": "<click>"
+          }
+        ]
+      }
+    },
+    {
+      "id": 64,
+      "category": "web",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "منفذ HTTPS الافتراضي؟",
+        "answers": [
+          {
+            "text": "443",
+            "correct": true
+          },
+          {
+            "text": "80"
+          },
+          {
+            "text": "21"
+          },
+          {
+            "text": "22"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Default HTTPS port?",
+        "answers": [
+          {
+            "text": "443",
+            "correct": true
+          },
+          {
+            "text": "80"
+          },
+          {
+            "text": "21"
+          },
+          {
+            "text": "22"
+          }
+        ]
+      }
+    },
+    {
+      "id": 65,
+      "category": "history",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أول الخلفاء الراشدين؟",
+        "answers": [
+          {
+            "text": "أبو بكر الصديق",
+            "correct": true
+          },
+          {
+            "text": "عمر"
+          },
+          {
+            "text": "عثمان"
+          },
+          {
+            "text": "علي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "First Rashidun Caliph?",
+        "answers": [
+          {
+            "text": "Abu Bakr",
+            "correct": true
+          },
+          {
+            "text": "Umar"
+          },
+          {
+            "text": "Uthman"
+          },
+          {
+            "text": "Ali"
+          }
+        ]
+      }
+    },
+    {
+      "id": 66,
+      "category": "history",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "سنة اكتشاف أمريكا من قبل كولومبوس؟",
+        "answers": [
+          {
+            "text": "1492",
+            "correct": true
+          },
+          {
+            "text": "1453"
+          },
+          {
+            "text": "1517"
+          },
+          {
+            "text": "1066"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Columbus reached the Americas in?",
+        "answers": [
+          {
+            "text": "1492",
+            "correct": true
+          },
+          {
+            "text": "1453"
+          },
+          {
+            "text": "1517"
+          },
+          {
+            "text": "1066"
+          }
+        ]
+      }
+    },
+    {
+      "id": 67,
+      "category": "history",
+      "difficulty": "hard",
+      "ar": {
+        "prompt": "سقوط القسطنطينية؟",
+        "answers": [
+          {
+            "text": "1453",
+            "correct": true
+          },
+          {
+            "text": "1492"
+          },
+          {
+            "text": "1066"
+          },
+          {
+            "text": "1517"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Fall of Constantinople?",
+        "answers": [
+          {
+            "text": "1453",
+            "correct": true
+          },
+          {
+            "text": "1492"
+          },
+          {
+            "text": "1066"
+          },
+          {
+            "text": "1517"
+          }
+        ]
+      }
+    },
+    {
+      "id": 68,
+      "category": "culture",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "طبق أرز خليجي معروف؟",
+        "answers": [
+          {
+            "text": "كبسة",
+            "correct": true
+          },
+          {
+            "text": "بايلا"
+          },
+          {
+            "text": "سوشي"
+          },
+          {
+            "text": "تاكو"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Famous Gulf rice dish?",
+        "answers": [
+          {
+            "text": "Kabsa",
+            "correct": true
+          },
+          {
+            "text": "Paella"
+          },
+          {
+            "text": "Sushi"
+          },
+          {
+            "text": "Taco"
+          }
+        ]
+      }
+    },
+    {
+      "id": 69,
+      "category": "culture",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "آلة عربية نفخية؟",
+        "answers": [
+          {
+            "text": "الناي",
+            "correct": true
+          },
+          {
+            "text": "الغيتار"
+          },
+          {
+            "text": "البيانو"
+          },
+          {
+            "text": "الدرامز"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Arabic wind instrument?",
+        "answers": [
+          {
+            "text": "Nay",
+            "correct": true
+          },
+          {
+            "text": "Guitar"
+          },
+          {
+            "text": "Piano"
+          },
+          {
+            "text": "Drums"
+          }
+        ]
+      }
+    },
+    {
+      "id": 70,
+      "category": "sports",
+      "difficulty": "hard",
+      "ar": {
+        "prompt": "عدد أشواط كرة التنس (مجموعات) الكبرى؟",
+        "answers": [
+          {
+            "text": "5 للرجال عادةً",
+            "correct": true
+          },
+          {
+            "text": "3 دائمًا"
+          },
+          {
+            "text": "7"
+          },
+          {
+            "text": "4"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Grand Slam tennis sets for men?",
+        "answers": [
+          {
+            "text": "Best of 5",
+            "correct": true
+          },
+          {
+            "text": "Always 3"
+          },
+          {
+            "text": "7"
+          },
+          {
+            "text": "4"
+          }
+        ]
+      }
+    },
+    {
+      "id": 71,
+      "category": "sports",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "مركز حراسة المرمى يوجد في؟",
+        "answers": [
+          {
+            "text": "كرة القدم",
+            "correct": true
+          },
+          {
+            "text": "كرة السلة"
+          },
+          {
+            "text": "البيسبول"
+          },
+          {
+            "text": "السباحة"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Goalkeeper position is in?",
+        "answers": [
+          {
+            "text": "Football (soccer)",
+            "correct": true
+          },
+          {
+            "text": "Basketball"
+          },
+          {
+            "text": "Baseball"
+          },
+          {
+            "text": "Swimming"
+          }
+        ]
+      }
+    },
+    {
+      "id": 72,
+      "category": "gaming",
+      "difficulty": "easy",
+      "ar": {
+        "prompt": "شركة أنشأت Xbox؟",
+        "answers": [
+          {
+            "text": "مايكروسوفت",
+            "correct": true
+          },
+          {
+            "text": "سوني"
+          },
+          {
+            "text": "نينتندو"
+          },
+          {
+            "text": "سيغا"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Company that created Xbox?",
+        "answers": [
+          {
+            "text": "Microsoft",
+            "correct": true
+          },
+          {
+            "text": "Sony"
+          },
+          {
+            "text": "Nintendo"
+          },
+          {
+            "text": "Sega"
+          }
+        ]
+      }
+    },
+    {
+      "id": 73,
+      "category": "movies",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "مخرج Inception؟",
+        "answers": [
+          {
+            "text": "كريستوفر نولان",
+            "correct": true
+          },
+          {
+            "text": "جيمس كاميرون"
+          },
+          {
+            "text": "سبيلبرغ"
+          },
+          {
+            "text": "سكورسيزي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Director of Inception?",
+        "answers": [
+          {
+            "text": "Christopher Nolan",
+            "correct": true
+          },
+          {
+            "text": "James Cameron"
+          },
+          {
+            "text": "Spielberg"
+          },
+          {
+            "text": "Scorsese"
+          }
+        ]
+      }
+    },
+    {
+      "id": 74,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة البرتغال؟",
+        "answers": [
+          {
+            "text": "الرياض"
+          },
+          {
+            "text": "الدوحة"
+          },
+          {
+            "text": "وارسو"
+          },
+          {
+            "text": "لشبونة",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Portugal?",
+        "answers": [
+          {
+            "text": "Cairo"
+          },
+          {
+            "text": "Canberra"
+          },
+          {
+            "text": "Ankara"
+          },
+          {
+            "text": "Lisbon",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 75,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة النمسا؟",
+        "answers": [
+          {
+            "text": "الرياض"
+          },
+          {
+            "text": "طرابلس"
+          },
+          {
+            "text": "أثينا"
+          },
+          {
+            "text": "فيينا",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Austria?",
+        "answers": [
+          {
+            "text": "Madrid"
+          },
+          {
+            "text": "Kuwait City"
+          },
+          {
+            "text": "Bern"
+          },
+          {
+            "text": "Vienna",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 76,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة سويسرا؟",
+        "answers": [
+          {
+            "text": "كييف"
+          },
+          {
+            "text": "سانتياغو"
+          },
+          {
+            "text": "برن",
+            "correct": true
+          },
+          {
+            "text": "أمستردام"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Switzerland?",
+        "answers": [
+          {
+            "text": "New Delhi"
+          },
+          {
+            "text": "Tokyo"
+          },
+          {
+            "text": "Bern",
+            "correct": true
+          },
+          {
+            "text": "Vienna"
+          }
+        ]
+      }
+    },
+    {
+      "id": 77,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة بلجيكا؟",
+        "answers": [
+          {
+            "text": "كييف"
+          },
+          {
+            "text": "أوسلو"
+          },
+          {
+            "text": "بروكسل",
+            "correct": true
+          },
+          {
+            "text": "فيينا"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Belgium?",
+        "answers": [
+          {
+            "text": "Cairo"
+          },
+          {
+            "text": "Warsaw"
+          },
+          {
+            "text": "Brussels",
+            "correct": true
+          },
+          {
+            "text": "Riyadh"
+          }
+        ]
+      }
+    },
+    {
+      "id": 78,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة الدانمارك؟",
+        "answers": [
+          {
+            "text": "برلين"
+          },
+          {
+            "text": "هلسنكي"
+          },
+          {
+            "text": "أوتاوا"
+          },
+          {
+            "text": "كوبنهاغن",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Denmark?",
+        "answers": [
+          {
+            "text": "Tunis"
+          },
+          {
+            "text": "Bern"
+          },
+          {
+            "text": "Brussels"
+          },
+          {
+            "text": "Copenhagen",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 79,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة فنلندا؟",
+        "answers": [
+          {
+            "text": "القاهرة"
+          },
+          {
+            "text": "كانبيرا"
+          },
+          {
+            "text": "برازيليا"
+          },
+          {
+            "text": "هلسنكي",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Finland?",
+        "answers": [
+          {
+            "text": "Copenhagen"
+          },
+          {
+            "text": "Rome"
+          },
+          {
+            "text": "Canberra"
+          },
+          {
+            "text": "Helsinki",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 80,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة بولندا؟",
+        "answers": [
+          {
+            "text": "برن"
+          },
+          {
+            "text": "وارسو",
+            "correct": true
+          },
+          {
+            "text": "بودابست"
+          },
+          {
+            "text": "باريس"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Poland?",
+        "answers": [
+          {
+            "text": "Bern"
+          },
+          {
+            "text": "Warsaw",
+            "correct": true
+          },
+          {
+            "text": "Ankara"
+          },
+          {
+            "text": "Buenos Aires"
+          }
+        ]
+      }
+    },
+    {
+      "id": 81,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة التشيك؟",
+        "answers": [
+          {
+            "text": "نيودلهي"
+          },
+          {
+            "text": "روما"
+          },
+          {
+            "text": "براغ",
+            "correct": true
+          },
+          {
+            "text": "مدريد"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Czech Republic?",
+        "answers": [
+          {
+            "text": "Kyiv"
+          },
+          {
+            "text": "Tripoli"
+          },
+          {
+            "text": "Prague",
+            "correct": true
+          },
+          {
+            "text": "Santiago"
+          }
+        ]
+      }
+    },
+    {
+      "id": 82,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة المجر؟",
+        "answers": [
+          {
+            "text": "بروكسل"
+          },
+          {
+            "text": "مسقط"
+          },
+          {
+            "text": "بودابست",
+            "correct": true
+          },
+          {
+            "text": "القاهرة"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Hungary?",
+        "answers": [
+          {
+            "text": "Mexico City"
+          },
+          {
+            "text": "Berlin"
+          },
+          {
+            "text": "Budapest",
+            "correct": true
+          },
+          {
+            "text": "Lisbon"
+          }
+        ]
+      }
+    },
+    {
+      "id": 83,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة رومانيا؟",
+        "answers": [
+          {
+            "text": "الرباط"
+          },
+          {
+            "text": "بوخارست",
+            "correct": true
+          },
+          {
+            "text": "ستوكهولم"
+          },
+          {
+            "text": "طوكيو"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Romania?",
+        "answers": [
+          {
+            "text": "Buenos Aires"
+          },
+          {
+            "text": "Bucharest",
+            "correct": true
+          },
+          {
+            "text": "Berlin"
+          },
+          {
+            "text": "Beijing"
+          }
+        ]
+      }
+    },
+    {
+      "id": 84,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة أوكرانيا؟",
+        "answers": [
+          {
+            "text": "مكسيكو سيتي"
+          },
+          {
+            "text": "الجزائر"
+          },
+          {
+            "text": "كييف",
+            "correct": true
+          },
+          {
+            "text": "مسقط"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Ukraine?",
+        "answers": [
+          {
+            "text": "Rabat"
+          },
+          {
+            "text": "Berlin"
+          },
+          {
+            "text": "Kyiv",
+            "correct": true
+          },
+          {
+            "text": "Tunis"
+          }
+        ]
+      }
+    },
+    {
+      "id": 85,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة روسيا؟",
+        "answers": [
+          {
+            "text": "هلسنكي"
+          },
+          {
+            "text": "مدينة الكويت"
+          },
+          {
+            "text": "موسكو",
+            "correct": true
+          },
+          {
+            "text": "كانبيرا"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Russia?",
+        "answers": [
+          {
+            "text": "Rome"
+          },
+          {
+            "text": "New Delhi"
+          },
+          {
+            "text": "Moscow",
+            "correct": true
+          },
+          {
+            "text": "Muscat"
+          }
+        ]
+      }
+    },
+    {
+      "id": 86,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة البرازيل؟",
+        "answers": [
+          {
+            "text": "طرابلس"
+          },
+          {
+            "text": "برازيليا",
+            "correct": true
+          },
+          {
+            "text": "وارسو"
+          },
+          {
+            "text": "أثينا"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Brazil?",
+        "answers": [
+          {
+            "text": "Ankara"
+          },
+          {
+            "text": "Brasília",
+            "correct": true
+          },
+          {
+            "text": "Amsterdam"
+          },
+          {
+            "text": "Beijing"
+          }
+        ]
+      }
+    },
+    {
+      "id": 87,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة الأرجنتين؟",
+        "answers": [
+          {
+            "text": "طرابلس"
+          },
+          {
+            "text": "بوينس آيرس",
+            "correct": true
+          },
+          {
+            "text": "الدوحة"
+          },
+          {
+            "text": "هلسنكي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Argentina?",
+        "answers": [
+          {
+            "text": "London"
+          },
+          {
+            "text": "Buenos Aires",
+            "correct": true
+          },
+          {
+            "text": "Paris"
+          },
+          {
+            "text": "Helsinki"
+          }
+        ]
+      }
+    },
+    {
+      "id": 88,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة تشيلي؟",
+        "answers": [
+          {
+            "text": "هلسنكي"
+          },
+          {
+            "text": "سانتياغو",
+            "correct": true
+          },
+          {
+            "text": "القاهرة"
+          },
+          {
+            "text": "لندن"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Chile?",
+        "answers": [
+          {
+            "text": "Tunis"
+          },
+          {
+            "text": "Santiago",
+            "correct": true
+          },
+          {
+            "text": "Cairo"
+          },
+          {
+            "text": "London"
+          }
+        ]
+      }
+    },
+    {
+      "id": 89,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة المكسيك؟",
+        "answers": [
+          {
+            "text": "مكسيكو سيتي",
+            "correct": true
+          },
+          {
+            "text": "كييف"
+          },
+          {
+            "text": "هلسنكي"
+          },
+          {
+            "text": "أوتاوا"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Mexico?",
+        "answers": [
+          {
+            "text": "Mexico City",
+            "correct": true
+          },
+          {
+            "text": "Beijing"
+          },
+          {
+            "text": "Budapest"
+          },
+          {
+            "text": "Bucharest"
+          }
+        ]
+      }
+    },
+    {
+      "id": 90,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة السعودية؟",
+        "answers": [
+          {
+            "text": "الدوحة"
+          },
+          {
+            "text": "الرياض",
+            "correct": true
+          },
+          {
+            "text": "لندن"
+          },
+          {
+            "text": "بروكسل"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Saudi Arabia?",
+        "answers": [
+          {
+            "text": "Rome"
+          },
+          {
+            "text": "Riyadh",
+            "correct": true
+          },
+          {
+            "text": "Stockholm"
+          },
+          {
+            "text": "Warsaw"
+          }
+        ]
+      }
+    },
+    {
+      "id": 91,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة قطر؟",
+        "answers": [
+          {
+            "text": "فيينا"
+          },
+          {
+            "text": "كانبيرا"
+          },
+          {
+            "text": "بودابست"
+          },
+          {
+            "text": "الدوحة",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Qatar?",
+        "answers": [
+          {
+            "text": "Kuwait City"
+          },
+          {
+            "text": "Vienna"
+          },
+          {
+            "text": "Algiers"
+          },
+          {
+            "text": "Doha",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 92,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة عُمان؟",
+        "answers": [
+          {
+            "text": "طوكيو"
+          },
+          {
+            "text": "لندن"
+          },
+          {
+            "text": "مسقط",
+            "correct": true
+          },
+          {
+            "text": "لشبونة"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Oman?",
+        "answers": [
+          {
+            "text": "Tunis"
+          },
+          {
+            "text": "Athens"
+          },
+          {
+            "text": "Muscat",
+            "correct": true
+          },
+          {
+            "text": "Cairo"
+          }
+        ]
+      }
+    },
+    {
+      "id": 93,
+      "category": "geography",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "عاصمة الكويت؟",
+        "answers": [
+          {
+            "text": "طرابلس"
+          },
+          {
+            "text": "بودابست"
+          },
+          {
+            "text": "طوكيو"
+          },
+          {
+            "text": "مدينة الكويت",
+            "correct": true
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Capital of Kuwait?",
+        "answers": [
+          {
+            "text": "Athens"
+          },
+          {
+            "text": "Tokyo"
+          },
+          {
+            "text": "Madrid"
+          },
+          {
+            "text": "Kuwait City",
+            "correct": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 94,
+      "category": "general",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أكبر محيط على الأرض؟",
+        "answers": [
+          {
+            "text": "الهادئ",
+            "correct": true
+          },
+          {
+            "text": "الأطلسي"
+          },
+          {
+            "text": "الهندي"
+          },
+          {
+            "text": "المتجمد الشمالي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Largest ocean on Earth?",
+        "answers": [
+          {
+            "text": "Pacific",
+            "correct": true
+          },
+          {
+            "text": "Atlantic"
+          },
+          {
+            "text": "Indian"
+          },
+          {
+            "text": "Arctic"
+          }
+        ]
+      }
+    },
+    {
+      "id": 95,
+      "category": "general",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أكبر محيط على الأرض؟",
+        "answers": [
+          {
+            "text": "الهادئ",
+            "correct": true
+          },
+          {
+            "text": "الأطلسي"
+          },
+          {
+            "text": "الهندي"
+          },
+          {
+            "text": "المتجمد الشمالي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Largest ocean on Earth?",
+        "answers": [
+          {
+            "text": "Pacific",
+            "correct": true
+          },
+          {
+            "text": "Atlantic"
+          },
+          {
+            "text": "Indian"
+          },
+          {
+            "text": "Arctic"
+          }
+        ]
+      }
+    },
+    {
+      "id": 96,
+      "category": "general",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أكبر محيط على الأرض؟",
+        "answers": [
+          {
+            "text": "الهادئ",
+            "correct": true
+          },
+          {
+            "text": "الأطلسي"
+          },
+          {
+            "text": "الهندي"
+          },
+          {
+            "text": "المتجمد الشمالي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Largest ocean on Earth?",
+        "answers": [
+          {
+            "text": "Pacific",
+            "correct": true
+          },
+          {
+            "text": "Atlantic"
+          },
+          {
+            "text": "Indian"
+          },
+          {
+            "text": "Arctic"
+          }
+        ]
+      }
+    },
+    {
+      "id": 97,
+      "category": "general",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أكبر محيط على الأرض؟",
+        "answers": [
+          {
+            "text": "الهادئ",
+            "correct": true
+          },
+          {
+            "text": "الأطلسي"
+          },
+          {
+            "text": "الهندي"
+          },
+          {
+            "text": "المتجمد الشمالي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Largest ocean on Earth?",
+        "answers": [
+          {
+            "text": "Pacific",
+            "correct": true
+          },
+          {
+            "text": "Atlantic"
+          },
+          {
+            "text": "Indian"
+          },
+          {
+            "text": "Arctic"
+          }
+        ]
+      }
+    },
+    {
+      "id": 98,
+      "category": "general",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أكبر محيط على الأرض؟",
+        "answers": [
+          {
+            "text": "الهادئ",
+            "correct": true
+          },
+          {
+            "text": "الأطلسي"
+          },
+          {
+            "text": "الهندي"
+          },
+          {
+            "text": "المتجمد الشمالي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Largest ocean on Earth?",
+        "answers": [
+          {
+            "text": "Pacific",
+            "correct": true
+          },
+          {
+            "text": "Atlantic"
+          },
+          {
+            "text": "Indian"
+          },
+          {
+            "text": "Arctic"
+          }
+        ]
+      }
+    },
+    {
+      "id": 99,
+      "category": "general",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أكبر محيط على الأرض؟",
+        "answers": [
+          {
+            "text": "الهادئ",
+            "correct": true
+          },
+          {
+            "text": "الأطلسي"
+          },
+          {
+            "text": "الهندي"
+          },
+          {
+            "text": "المتجمد الشمالي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Largest ocean on Earth?",
+        "answers": [
+          {
+            "text": "Pacific",
+            "correct": true
+          },
+          {
+            "text": "Atlantic"
+          },
+          {
+            "text": "Indian"
+          },
+          {
+            "text": "Arctic"
+          }
+        ]
+      }
+    },
+    {
+      "id": 100,
+      "category": "general",
+      "difficulty": "medium",
+      "ar": {
+        "prompt": "أكبر محيط على الأرض؟",
+        "answers": [
+          {
+            "text": "الهادئ",
+            "correct": true
+          },
+          {
+            "text": "الأطلسي"
+          },
+          {
+            "text": "الهندي"
+          },
+          {
+            "text": "المتجمد الشمالي"
+          }
+        ]
+      },
+      "en": {
+        "prompt": "Largest ocean on Earth?",
+        "answers": [
+          {
+            "text": "Pacific",
+            "correct": true
+          },
+          {
+            "text": "Atlantic"
+          },
+          {
+            "text": "Indian"
+          },
+          {
+            "text": "Arctic"
+          }
+        ]
+      }
+    }
+  ]
+}
